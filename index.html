@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Minisistema</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+</head>
+
+<body>
+  <div class="app">
+
+    <aside class="sidebar">
+      <div class="brand">MINISISTEMA</div>
+      <nav class="menu">
+        <a href="#" class="menu-item active" data-modulo="produccion">PRODUCCIÓN</a>
+        <a href="#" class="menu-item" data-modulo="gastos">GASTOS</a>
+        <a href="#" class="menu-item" data-modulo="rrhh">RECURSOS HUMANOS</a>
+        <a href="#" class="menu-item" data-modulo="cxc">CUENTAS POR COBRAR</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="header">
+        <h1 id="titulo">PRODUCCIÓN</h1>
+      </header>
+
+      <div class="selectores">
+        <label for="empresaSelect">Empresa:</label>
+        <select id="empresaSelect"></select>
+
+        <label for="haciendaSelect">Hacienda:</label>
+        <select id="haciendaSelect"></select>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpis">
+        <div class="kpi"><h4>KPI 1</h4><span id="kpi1">0</span></div>
+        <div class="kpi"><h4>KPI 2</h4><span id="kpi2">0</span></div>
+        <div class="kpi"><h4>KPI 3</h4><span id="kpi3">0</span></div>
+        <div class="kpi"><h4>KPI 4</h4><span id="kpi4">0</span></div>
+        <div class="kpi"><h4>KPI 5</h4><span id="kpi5">0</span></div>
+      </div>
+
+      <!-- ZONA SUPERIOR -->
+      <div class="zona-superior">
+
+        <!-- Tabla principal -->
+        <div class="tabla-contenedor">
+          <div class="titulo-tabla" id="titulo-tabla">TABLA PRINCIPAL</div>
+          <div class="tabla-scroll">
+            <table class="tabla-produccion">
+              <thead><tr id="theadTabla"></tr></thead>
+              <tbody id="tablaBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Panel detalle -->
+        <div id="panel-detalles" class="tabla-contenedor">
+          <div class="titulo-tabla">DETALLES</div>
+          <div class="tabla-scroll">
+            <table class="tabla-detalle">
+              <thead>
+                <tr><th>Tipo</th><th>Detalle</th><th>Valor</th></tr>
+              </thead>
+              <tbody id="tablaDetalle"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- GRAFICO -->
+      <div class="zona-inferior">
+        <div class="grafico-box grande">
+          <div class="tabs">
+            <button class="tab active">TAB 1</button>
+            <button class="tab">TAB 2</button>
+            <button class="tab">TAB 3</button>
+            <button class="tab">TAB 4</button>
+          </div>
+
+          <div class="grafico-wrapper">
+            <canvas id="grafico"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

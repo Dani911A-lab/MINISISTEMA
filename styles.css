@@ -1,0 +1,271 @@
+/* ====================================================== 
+   MINI SISTEMA AGRÍCOLA — ESTILOS COMPLETOS
+====================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f4f6f9;
+    overflow: hidden;
+}
+
+.app {
+    display: flex;
+    height: 100vh;
+}
+
+/* ================== SIDEBAR MEJORADO ================== */
+.sidebar {
+    width: 240px;
+    padding: 25px 20px;
+    color: #1f2937;
+    background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(245,245,245,0.95) 100%);
+    border-right: 1px solid rgba(0,0,0,0.08);
+    backdrop-filter: blur(14px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    overflow-y: auto;
+}
+
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.1);
+    border-radius: 3px;
+}
+
+.brand {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 30px;
+    color: #ba027d;
+    letter-spacing: 1px;
+}
+
+.menu {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: #374151;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: all 0.25s ease;
+    position: relative;
+}
+
+.menu-item:hover {
+    background: #f3f4f6;
+    color: #3b82f6;
+    transform: translateX(4px);
+}
+
+.menu-item.active {
+    background: #3b82f6;
+    color: white;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.35);
+}
+
+.menu-item::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: transparent;
+    transition: background 0.25s;
+}
+
+.menu-item.active::before {
+    background: white;
+}
+
+/* ================== MAIN ================== */
+.main {
+    flex: 1;
+    padding: 20px;
+    display: grid;
+    gap: 12px;
+    grid-template-rows: auto auto auto 1fr 1fr;
+}
+
+/* SELECTORES */
+.selectores {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+}
+
+.selectores label {
+    font-weight: bold;
+    color: #1f2937;
+}
+
+.selectores select {
+    padding: 10px 36px 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2937;
+    cursor: pointer;
+    border-radius: 12px;
+    border: 1px solid #d1d5db;
+    background: white;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='gray' viewBox='0 0 16 16'%3E%3Cpath d='M1.5 5.5l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+    transition: .2s ease;
+}
+
+.selectores select:hover { border-color: #3b82f6; }
+.selectores select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+/* ================== KPIS ================== */
+.kpis {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(5, 1fr);
+}
+
+.kpi {
+    text-align: center;
+    background: white;
+    padding: 10px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.kpi span {
+    font-size: 18px;
+    font-weight: bold;
+    color: #72737b;
+}
+
+/* ================== ZONA SUPERIOR ================== */
+.zona-superior {
+    display: grid;
+    gap: 15px;
+    grid-template-columns: 2fr 1fr;
+    min-height: 0;
+}
+
+.tabla-contenedor,
+#panel-detalles {
+    padding: 10px 10px 10px 16px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.tabla-scroll {
+    flex: 1;
+    overflow-y: auto;
+    border-radius: 12px;
+    scrollbar-width: none;
+}
+.tabla-scroll::-webkit-scrollbar { display: none; }
+
+.tabla-produccion,
+.tabla-detalle {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.tabla-produccion th, .tabla-produccion td,
+.tabla-detalle th, .tabla-detalle td {
+    padding: 6px;
+    text-align: center;
+}
+
+.tabla-produccion thead,
+.tabla-detalle thead {
+    background: none;
+    color: #1f2937;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.tabla-produccion tbody tr:nth-child(even),
+.tabla-detalle tbody tr:nth-child(even) {
+    background: #f9fafb;
+}
+
+.tabla-produccion tbody tr:hover,
+.tabla-detalle tbody tr:hover {
+    background: #e5edff;
+}
+
+/* ================== ZONA INFERIOR ================== */
+.zona-inferior { border-radius: 14px; min-height: 0; }
+
+.grafico-box.grande {
+    height: 100%;
+    padding: 8px;
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 14px;
+}
+
+.grafico-wrapper {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 12px;
+    scrollbar-width: none;
+}
+.grafico-wrapper::-webkit-scrollbar { display: none; }
+
+/* ================== TABS ================== */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.tab {
+    padding: 6px 10px;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    background: #e5e7eb;
+}
+
+.tab.active {
+    background: #ba027d;
+    color: white;
+}
+
+.titulo-tabla {
+    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+canvas {
+    display: block;
+    max-width: 100% !important;
+    max-height: 100% !important;
+}
