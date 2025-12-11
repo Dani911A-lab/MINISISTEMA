@@ -21,7 +21,7 @@ body {
     margin: 20px;
     padding: 20px;
     border-radius: 24px;
-    background: #ffffff;
+    background: #f6f6f6;
     box-shadow: 0 8px 30px rgba(0,0,0,0.12);
     height: calc(100vh - 40px);
     overflow: hidden;
@@ -62,7 +62,7 @@ body {
     border-radius: 4px;
 }
 
-/* LOGO / MARCA — más pequeño y corporativo */
+/* LOGO / MARCA */
 .brand {
     font-size: 16px;
     font-weight: 700;
@@ -79,7 +79,7 @@ body {
     gap: 2px;
 }
 
-/* ------ ITEMS DEL MENÚ ------ */
+/* ITEMS DEL MENÚ */
 .menu-item {
     display: flex;
     align-items: center;
@@ -97,20 +97,17 @@ body {
     transition: 0.22s ease;
 }
 
-/* ICONOS más minimalistas */
 .menu-item::before {
     font-size: 14px;
     width: 16px;
     opacity: 0.75;
 }
 
-/* Íconos modernos */
 .menu-item[data-modulo="produccion"]::before { content: "📊"; }
 .menu-item[data-modulo="gastos"]::before { content: "💼"; }
 .menu-item[data-modulo="rrhh"]::before { content: "👥"; }
 .menu-item[data-modulo="cxc"]::before { content: "📄"; }
 
-/* Línea lateral delgada */
 .menu-item.active::after {
     content: "";
     position: absolute;
@@ -122,13 +119,11 @@ body {
     box-shadow: 0 0 8px rgba(82, 0, 55, 0.2);
 }
 
-/* Hover profesional */
 .menu-item:hover {
     background: rgba(0,0,0,0.05);
     transform: translateX(2px);
 }
 
-/* Activo */
 .menu-item.active {
     background: rgba(186, 2, 125, 0.12);
     color: #ba027d;
@@ -136,7 +131,7 @@ body {
 }
 
 /* ======================================================
-   MAIN — CENTRADO EXTREMO
+   MAIN
 ====================================================== */
 .main {
     flex: 1;
@@ -185,9 +180,8 @@ body {
 }
 
 /* ======================================================
-   KPIS — CORREGIDO (SIN FONDO EXTRA RARO)
+   KPIS
 ====================================================== */
-
 .kpis {
     display: flex;
     gap: 14px;
@@ -201,11 +195,10 @@ body {
     flex: 1;
     min-width: 100px;
     text-align: center;
-    border: 1px solid #ebeced; /* color gris claro */
+    border: 1px solid #ebeced;
     padding: 16px;
     border-radius: 16px;
 
-    /* Fondo con muchas líneas curvas horizontales centradas */
     background-color: white;
     background-image: url("data:image/svg+xml,%3Csvg width='200' height='100' viewBox='0 0 200 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 5 Q50 0 100 5 T200 5 M0 10 Q50 5 100 10 T200 10 M0 15 Q50 10 100 15 T200 15 M0 20 Q50 15 100 20 T200 20 M0 25 Q50 20 100 25 T200 25 M0 30 Q50 25 100 30 T200 30 M0 35 Q50 30 100 35 T200 35 M0 40 Q50 35 100 40 T200 40 M0 45 Q50 40 100 45 T200 45 M0 50 Q50 45 100 50 T200 50 M0 55 Q50 50 100 55 T200 55 M0 60 Q50 55 100 60 T200 60 M0 65 Q50 60 100 65 T200 65 M0 70 Q50 65 100 70 T200 70 M0 75 Q50 70 100 75 T200 75 M0 80 Q50 75 100 80 T200 80 M0 85 Q50 80 100 85 T200 85 M0 90 Q50 85 100 90 T200 90 M0 95 Q50 90 100 95 T200 95' stroke='%23878a8f' stroke-width='1' fill='none' opacity='0.15'/%3E%3C/svg%3E");
     background-repeat: repeat-x;
@@ -213,9 +206,6 @@ body {
     background-position: center;
 
     box-shadow: 0 4px 14px rgba(0,0,0,0.10);
-
-    position: relative;
-    z-index: 2;
 }
 
 .kpi h4 {
@@ -299,7 +289,6 @@ tbody tr:hover { background: #e5edff; }
     flex-direction: column;
     background: white;
     border-radius: 16px;
-
     box-shadow: 0 4px 14px rgba(0,0,0,0.12);
 }
 
@@ -307,6 +296,7 @@ tbody tr:hover { background: #e5edff; }
     flex: 1;
     overflow: hidden;
     border-radius: 12px;
+    
 }
 
 /* ======================================================
@@ -346,4 +336,67 @@ canvas {
     display: block;
     max-width: 100% !important;
     max-height: 100% !important;
+}
+
+/* ============================================================
+   LOADING SCREEN PREMIUM — TARJETA + SPINNER ELEGANTE
+============================================================ */
+
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    backdrop-filter: blur(1px);
+    background: rgba(255, 255, 255, 0.35);
+
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    z-index: 9999;
+}
+
+/* Tarjeta central estilo iOS */
+.loader-box {
+    padding: 28px 34px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(18px);
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+/* Spinner elegante */
+.loader-spinner {
+    width: 38px;
+    height: 38px;
+    border: 4px solid rgba(0, 0, 0, 0.15);
+    border-top-color: #ba027d;
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0); }
+    to { transform: rotate(360deg); }
+}
+
+.loader-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    opacity: .8;
+}
+
+.loader-overlay.show {
+    opacity: 1;
+    pointer-events: all;
 }
