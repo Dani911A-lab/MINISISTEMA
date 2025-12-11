@@ -1,5 +1,5 @@
 /* ================================================================
-   MINI SISTEMA AGRÍCOLA — MÓDULOS DINÁMICOS CON DETALLES
+   MINI SISTEMA AGRÍCOLA — MÓDULOS DINÁMICOS CON DETALLES + LOADER
 ================================================================ */
 
 const moduloBtns = document.querySelectorAll(".menu-item");
@@ -12,6 +12,7 @@ const tituloPrincipal = document.getElementById("titulo");
 const tabsContainer = document.querySelector(".tabs");
 const kpisContainer = document.querySelector(".kpis");
 const tablaDetalle = document.getElementById("tablaDetalle");
+const loader = document.getElementById("loader");
 
 let currentModule = "Producción";
 let dataModules = {};
@@ -19,10 +20,50 @@ let headersModules = {};
 let datosFiltrados = [];
 let chart = null;
 let tipoGrafico = null;
-
 let dataDetalles = null;
 
-// URLs
+/* ===================== HECTÁREAS ===================== */
+
+const HECTAREAS = {
+  "PORVENIR": 94,
+  "ESPERANZA": 36,
+  "EL CISNE": 13,
+  "VAQUERIA": 61.4,
+  "ESTRELLITA": 66.65,
+  "PRIMAVERA": 67,
+  "MARIA": 252.16,
+  "AGRO&SOL": 381.5
+};
+
+/* ===================== LOADER CONTROL ===================== */
+
+let moduloCargado = {
+  "Producción": false,
+  "Gastos": false,
+  "Liquidaciones": false
+};
+
+function showLoader(modulo) {
+  if (moduloCargado[modulo]) return;  
+  loader.style.display = "flex";
+  requestAnimationFrame(() => {
+    loader.style.opacity = "1";
+  });
+}
+
+function hideLoader(modulo) {
+  if (moduloCargado[modulo]) return;
+
+  loader.style.opacity = "0";
+  setTimeout(() => {
+    loader.style.display = "none";
+  }, 350);
+
+  moduloCargado[modulo] = true;
+}
+
+/* ================= URLs ================= */
+
 const sheetURLs = {
   "Producción": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRWUa0XHVhUxy79IY5bv2vppEWhA50Mye4loI4wCErMtGjSM7uP1MHWcCSb8ciUwi6YT2XO7iQhKhFq/pub?gid=0&single=true&output=csv",
   "Gastos": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSGqKfSKtI7fdrgu6Ssz43ZFgXrrTf4B8fzWdKt6PAUJiRibhzE75cW9YNAN10T6cU3ORoqst4OTZiD/pub?gid=0&single=true&output=csv",
@@ -34,13 +75,26 @@ const detallesURLs = {
   "Gastos": "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3yzCzfky5TeiKNaNOcIdNeGAvotBE-RincIpCt4kOIEnV8-rLLWk4tG0xaNG6Xt2jT2FsTVqr6iC1/pub?gid=0&single=true&output=csv"
 };
 
-// ---------------------- UTILIDADES ----------------------
+/* ================= UTILIDADES ================= */
+
 const num = v => +((v || "0").toString().replace(/[$,%\s]/g, "")) || 0;
 
-// ---------------------- CARGA DATOS ----------------------
+/* ================= CARGA DE MÓDULO ================= */
+
 async function cargarDatosModulo(modulo) {
-  if (!sheetURLs[modulo]) return;
-  if (dataModules[modulo]) { actualizarUI(); return; }
+
+  showLoader(modulo);
+
+  if (!sheetURLs[modulo]) { 
+    hideLoader(modulo);
+    return; 
+  }
+
+  if (dataModules[modulo]) {
+    actualizarUI();
+    hideLoader(modulo);
+    return;
+  }
 
   const res = await fetch(sheetURLs[modulo]);
   const csv = await res.text();
@@ -55,8 +109,10 @@ async function cargarDatosModulo(modulo) {
   for (const row of lines.slice(1)) {
     const empresa = row[1], hacienda = row[2];
     if (!empresa || !hacienda) continue;
+
     data[empresa] ??= {};
     data[empresa][hacienda] ??= [];
+
     const obj = {};
     headers.forEach((h, i) => obj[h] = row[i] ?? "");
     data[empresa][hacienda].push(obj);
@@ -64,13 +120,14 @@ async function cargarDatosModulo(modulo) {
 
   dataModules[modulo] = data;
 
-  // Cargar detalles
   await cargarDetalles(modulo);
-
   actualizarUI();
+
+  hideLoader(modulo);
 }
 
-// ---------------------- CARGA DETALLES ----------------------
+/* ================= CARGA DETALLES ================= */
+
 async function cargarDetalles(modulo) {
   const url = detallesURLs[modulo];
   if (!url) return;
@@ -89,8 +146,10 @@ async function cargarDetalles(modulo) {
     const empresa = (row[1] ?? "").trim();
     const hacienda = (row[2] ?? "").trim();
     if (!empresa || !hacienda) continue;
+
     data[empresa] ??= {};
     data[empresa][hacienda] ??= [];
+
     const obj = {};
     headers.forEach((h, i) => obj[h] = (row[i] ?? "").replace(/\n/g, " ").trim());
     data[empresa][hacienda].push(obj);
@@ -99,17 +158,19 @@ async function cargarDetalles(modulo) {
   dataDetalles = { data, headers };
 }
 
-// ---------------------- SELECTORES ----------------------
+/* ================= SELECTORES ================= */
+
 function actualizarUI() {
   cargarEmpresas();
   empresaSelect.value = "GLOBAL";
   cargarHaciendas();
   haciendaSelect.value = "GLOBAL";
   tipoGrafico = null;
+
   actualizarKPIs();
   renderTabla();
   renderGrafico();
-  tablaDetalle.innerHTML = ""; // limpiar detalles al cambiar módulo
+  tablaDetalle.innerHTML = "";
 }
 
 function cargarEmpresas() {
@@ -125,11 +186,13 @@ function cargarHaciendas() {
   haciendaSelect.innerHTML = [...haciendas].map(h => `<option>${h}</option>`).join("");
 }
 
-// ---------------------- KPIs ----------------------
+/* ================= KPIs ================= */
+
 function actualizarKPIs() {
   const data = dataModules[currentModule] || {};
   const headers = headersModules[currentModule] || [];
   const e = empresaSelect.value, h = haciendaSelect.value;
+
   const filaKPI = (data[e]?.[h] || []).find(x => x[headers[0]] == "0");
 
   kpisContainer.innerHTML = "";
@@ -142,23 +205,25 @@ function actualizarKPIs() {
   });
 }
 
-// ---------------------- TABLA PRINCIPAL ----------------------
+/* ================= TABLA ================= */
+
 function renderTabla() {
   const data = dataModules[currentModule] || {};
   const headers = headersModules[currentModule] || [];
   const e = empresaSelect.value, h = haciendaSelect.value;
 
   datosFiltrados = (data[e]?.[h] || []).filter(r => r[headers[0]] != "0");
+
   const headersTabla = headers.filter((_, idx) => idx !== 1 && idx !== 2);
   theadTabla.innerHTML = headersTabla.map(hd => `<th>${hd}</th>`).join("");
 
-  // Columna clickeable
   let colClickeable = -1;
-  if (currentModule === "Producción") {
+
+  if (currentModule === "Producción")
     colClickeable = headersTabla.findIndex(h => h.toLowerCase().includes("rechazado"));
-  } else if (currentModule === "Gastos") {
-    colClickeable = headersTabla.findIndex(h => h.toLowerCase() === "riego"); // solo Riego
-  }
+
+  if (currentModule === "Gastos")
+    colClickeable = headersTabla.findIndex(h => h.toLowerCase() === "riego");
 
   tablaBody.innerHTML = datosFiltrados.map(row =>
     `<tr>${headersTabla.map((hd, colIndex) => {
@@ -171,23 +236,36 @@ function renderTabla() {
   ).join("");
 
   document.querySelectorAll(".detalle-clic").forEach(el => {
-    el.addEventListener("click", () => renderDetalles(el.dataset.semana, el.dataset.col));
+    el.addEventListener("click", () =>
+      renderDetalles(el.dataset.semana, el.dataset.col)
+    );
   });
 
-  tituloTabla.innerText = `${currentModule} - ${e} / ${h}`;
+  /* >>>> AQUI SE AGREGA HECTÁREAS AL TÍTULO <<<< */
+  const hect =
+    HECTAREAS[h.trim().toUpperCase()] ?
+    ` (${HECTAREAS[h.trim().toUpperCase()]} has)` :
+    "";
+
+  tituloTabla.innerText = `${currentModule} - ${e} / ${h}${hect}`;
 }
 
-// ---------------------- RENDER DETALLES ----------------------
+/* ================= DETALLES ================= */
+
 function renderDetalles(semana, columna) {
   if (!dataDetalles) return;
+
   const e = empresaSelect.value.trim();
   const h = haciendaSelect.value.trim();
+
   const detallesRaw = dataDetalles.data[e]?.[h] || [];
 
   let detalles = detallesRaw.filter(d => (d.SEM ?? "").trim() === semana);
 
   if (currentModule === "Gastos" && columna === "Riego") {
-    detalles = detalles.filter(d => (d.RUBRO ?? "").toUpperCase().includes("MATERIAL DE RIEGO"));
+    detalles = detalles.filter(d =>
+      (d.RUBRO ?? "").toUpperCase().includes("MATERIAL DE RIEGO")
+    );
   }
 
   tablaDetalle.innerHTML = detalles.map(d =>
@@ -199,57 +277,62 @@ function renderDetalles(semana, columna) {
   ).join("");
 }
 
-// ---------------------- GRÁFICO ----------------------
+/* ================= GRÁFICO ================= */
+
 function renderGrafico(tipo = tipoGrafico) {
   const headers = headersModules[currentModule] || [];
+
   if (!datosFiltrados.length || headers.length < 4) {
     tabsContainer.innerHTML = "";
-    if (chart) { chart.destroy(); chart = null; }
+    if (chart) chart.destroy();
+    chart = null;
     return;
   }
-  if (!tipo) { tipo = headers[3]; tipoGrafico = tipo; }
+
+  if (!tipo) {
+    tipo = headers[3];
+    tipoGrafico = tipo;
+  }
 
   const labels = datosFiltrados.map(x => `Sem ${x[headers[0]]}`);
   const valores = datosFiltrados.map(x => num(x[tipo]));
+
   if (chart) chart.destroy();
 
-const pointLabelsPlugin = {
-  id: "pointLabels",
-  beforeDatasetsDraw(chartInstance) {
-    const { ctx } = chartInstance;
-    chartInstance.data.datasets.forEach((dataset, i) => {
-      const meta = chartInstance.getDatasetMeta(i);
-      meta.data.forEach((point, index) => {
-        const value = dataset.data[index];
+  const pointLabelsPlugin = {
+    id: "pointLabels",
+    beforeDatasetsDraw(chartInstance) {
+      const { ctx } = chartInstance;
+      chartInstance.data.datasets.forEach((dataset, i) => {
+        const meta = chartInstance.getDatasetMeta(i);
+        meta.data.forEach((point, index) => {
+          const value = dataset.data[index];
+          const formattedValue = new Intl.NumberFormat('es-EC').format(value);
 
-        // Formateo con separador de miles
-        const formattedValue = new Intl.NumberFormat('es-EC').format(value);
-
-        ctx.save();
-        ctx.fillStyle = "#000";
-        ctx.font = "11px -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(formattedValue, point.x, point.y - 8);
-        ctx.restore();
+          ctx.save();
+          ctx.fillStyle = "#484848ff";
+          ctx.font = "11px -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(formattedValue, point.x, point.y - 8);
+          ctx.restore();
+        });
       });
-    });
-  }
-};
-
+    }
+  };
 
   const ctx = document.getElementById("grafico");
   chart = new Chart(ctx, {
-    type: "line", // seguimos usando 'line' pero con fill
+    type: "line",
     data: {
       labels,
       datasets: [{
         label: tipo,
         data: valores,
-        tension: 0.4,                      // curvas suaves
-        borderColor: "rgba(186,2,125,0.3)",// línea menos intensa
-        backgroundColor: "rgba(186,2,125,0.25)", // área bajo la curva
-        fill: true,                         // activa área
-        pointRadius: 0                      // puntos invisibles
+        tension: 0.4,
+        borderColor: "rgba(186,2,125,0.3)",
+        backgroundColor: "rgba(186,2,125,0.25)",
+        fill: true,
+        pointRadius: 0
       }]
     },
     options: {
@@ -258,14 +341,13 @@ const pointLabelsPlugin = {
       plugins: { legend: { display: false } },
       elements: { line: { borderWidth: 2 } },
       scales: {
-        x: { grid: { display: false } },        // sin grilla vertical
-        y: { grid: { color: "#e5e7eb" } }       // grilla horizontal sutil
+        x: { grid: { display: false } },
+        y: { grid: { color: "#e5e7eb" } }
       }
     },
     plugins: [pointLabelsPlugin]
   });
 
-  // ---------------------- CREACIÓN DE TABS ----------------------
   tabsContainer.innerHTML = "";
   headers.slice(3).forEach(head => {
     const btn = document.createElement("button");
@@ -276,9 +358,11 @@ const pointLabelsPlugin = {
   });
 }
 
-// ---------------------- CAMBIO DE MÓDULO ----------------------
+/* ================= CAMBIO DE MÓDULO ================= */
+
 moduloBtns.forEach(btn => {
   btn.addEventListener("click", () => {
+
     moduloBtns.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
@@ -289,7 +373,7 @@ moduloBtns.forEach(btn => {
       btn.dataset.modulo === "cxc" ? "Cuentas por Cobrar" : currentModule;
 
     tituloPrincipal.innerText = currentModule;
-    tablaDetalle.innerHTML = ""; // limpiar detalles al cambiar módulo
+    tablaDetalle.innerHTML = "";
 
     if (!sheetURLs[currentModule]) {
       tablaBody.innerHTML = "";
@@ -304,12 +388,12 @@ moduloBtns.forEach(btn => {
   });
 });
 
+/* ================= SELECTORES ================= */
 
-// ---------------------- EVENTOS SELECTORES ----------------------
 empresaSelect.addEventListener("change", () => {
+  actualizarKPIs();
   cargarHaciendas();
   haciendaSelect.value = "GLOBAL";
-  actualizarKPIs();
   renderTabla();
   renderGrafico();
 });
@@ -320,5 +404,6 @@ haciendaSelect.addEventListener("change", () => {
   renderGrafico();
 });
 
-// ---------------------- INICIO ----------------------
+/* ================= INICIO ================= */
+
 cargarDatosModulo(currentModule);
