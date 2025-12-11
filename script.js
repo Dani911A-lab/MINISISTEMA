@@ -82,7 +82,6 @@ const num = v => +((v || "0").toString().replace(/[$,%\s]/g, "")) || 0;
 /* ================= CARGA DE MÓDULO ================= */
 
 async function cargarDatosModulo(modulo) {
-
   showLoader(modulo);
 
   if (!sheetURLs[modulo]) { 
@@ -241,7 +240,6 @@ function renderTabla() {
     );
   });
 
-  /* >>>> AQUI SE AGREGA HECTÁREAS AL TÍTULO <<<< */
   const hect =
     HECTAREAS[h.trim().toUpperCase()] ?
     ` (${HECTAREAS[h.trim().toUpperCase()]} has)` :
@@ -252,29 +250,21 @@ function renderTabla() {
 
 /* ================= DETALLES ================= */
 
-function renderDetalles(semana, columna) {
-  if (!dataDetalles) return;
-
-  const e = empresaSelect.value.trim();
-  const h = haciendaSelect.value.trim();
-
-  const detallesRaw = dataDetalles.data[e]?.[h] || [];
-
-  let detalles = detallesRaw.filter(d => (d.SEM ?? "").trim() === semana);
-
-  if (currentModule === "Gastos" && columna === "Riego") {
-    detalles = detalles.filter(d =>
-      (d.RUBRO ?? "").toUpperCase().includes("MATERIAL DE RIEGO")
-    );
-  }
-
-  tablaDetalle.innerHTML = detalles.map(d =>
-    `<tr>
-      <td>${d.TIPO ?? ""}</td>
-      <td>${d.DETALLE ?? ""}</td>
-      <td>${d.VALOR ?? ""}</td>
-    </tr>`
-  ).join("");
+function renderDetalles() {
+  tablaDetalle.innerHTML = `
+    <tr>
+      <td colspan="3" style="padding: 60px 0;">
+        <div style="
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
+        ">
+          <span style="font-size:20px; color:#ba027d;">🚧 Módulo en mantenimiento 🚧</span>
+        </div>
+      </td>
+    </tr>
+  `;
 }
 
 /* ================= GRÁFICO ================= */
@@ -321,6 +311,11 @@ function renderGrafico(tipo = tipoGrafico) {
   };
 
   const ctx = document.getElementById("grafico");
+
+  // Calculamos máximo y añadimos margen superior 10%
+  const maxValor = Math.max(...valores);
+  const margenSuperior = maxValor * 0.1;
+
   chart = new Chart(ctx, {
     type: "line",
     data: {
@@ -342,7 +337,10 @@ function renderGrafico(tipo = tipoGrafico) {
       elements: { line: { borderWidth: 2 } },
       scales: {
         x: { grid: { display: false } },
-        y: { grid: { color: "#e5e7eb" } }
+        y: { 
+          grid: { color: "#e5e7eb" },
+          suggestedMax: maxValor + margenSuperior
+        }
       }
     },
     plugins: [pointLabelsPlugin]
