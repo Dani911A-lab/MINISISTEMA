@@ -4,95 +4,111 @@
   <meta charset="utf-8" />
   <title>Minisistema</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="styles.css" />
 
+  <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 
 <body>
-  <div class="app">
+  <!-- CONTENEDOR PRINCIPAL CON BORDES REDONDEADOS -->
+  <div class="contenedor-principal">
 
-    <aside class="sidebar">
-      <div class="brand">MINISISTEMA</div>
-      <nav class="menu">
-        <a href="#" class="menu-item active" data-modulo="produccion">PRODUCCIÓN</a>
-        <a href="#" class="menu-item" data-modulo="gastos">GASTOS</a>
-        <a href="#" class="menu-item" data-modulo="rrhh">RECURSOS HUMANOS</a>
-        <a href="#" class="menu-item" data-modulo="cxc">CUENTAS POR COBRAR</a>
-      </nav>
-    </aside>
+    <!-- LOADER -->
+    <div id="loader" class="loader-overlay">
+      <div class="spinner"></div>
+      <div class="loader-text">Cargando...</div>
+    </div>
 
-    <main class="main">
-      <header class="header">
-        <h1 id="titulo">PRODUCCIÓN</h1>
-      </header>
+    <div class="app">
 
-      <div class="selectores">
-        <label for="empresaSelect">Empresa:</label>
-        <select id="empresaSelect"></select>
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <div class="brand">MINISISTEMA</div>
+        <nav class="menu">
+          <a class="menu-item active" data-modulo="produccion">PRODUCCIÓN</a>
+          <a class="menu-item" data-modulo="gastos">GASTOS</a>
+          <a class="menu-item" data-modulo="liquidaciones">💰 LIQUIDACIONES</a>
+          <a class="menu-item" data-modulo="cxc">CUENTAS POR COBRAR</a>
+        </nav>
+      </aside>
 
-        <label for="haciendaSelect">Hacienda:</label>
-        <select id="haciendaSelect"></select>
-      </div>
+      <!-- MAIN -->
+      <main class="main">
 
-      <!-- KPIs -->
-      <div class="kpis">
-        <div class="kpi"><h4>KPI 1</h4><span id="kpi1">0</span></div>
-        <div class="kpi"><h4>KPI 2</h4><span id="kpi2">0</span></div>
-        <div class="kpi"><h4>KPI 3</h4><span id="kpi3">0</span></div>
-        <div class="kpi"><h4>KPI 4</h4><span id="kpi4">0</span></div>
-        <div class="kpi"><h4>KPI 5</h4><span id="kpi5">0</span></div>
-      </div>
+        <!-- HEADER -->
+        <header class="header">
+          <h1 id="titulo">PRODUCCIÓN</h1>
+        </header>
 
-      <!-- ZONA SUPERIOR -->
-      <div class="zona-superior">
+        <!-- SELECTORES -->
+        <div class="selectores">
+          <label for="empresaSelect">Empresa:</label>
+          <select id="empresaSelect"></select>
 
-        <!-- Tabla principal -->
-        <div class="tabla-contenedor">
-          <div class="titulo-tabla" id="titulo-tabla">TABLA PRINCIPAL</div>
-          <div class="tabla-scroll">
-            <table class="tabla-produccion">
-              <thead><tr id="theadTabla"></tr></thead>
-              <tbody id="tablaBody"></tbody>
-            </table>
-          </div>
+          <label for="haciendaSelect">Hacienda:</label>
+          <select id="haciendaSelect"></select>
         </div>
 
-        <!-- Panel detalle -->
-        <div id="panel-detalles" class="tabla-contenedor">
-          <div class="titulo-tabla">DETALLES</div>
-          <div class="tabla-scroll">
-            <table class="tabla-detalle">
-              <thead>
-                <tr><th>Tipo</th><th>Detalle</th><th>Valor</th></tr>
-              </thead>
-              <tbody id="tablaDetalle"></tbody>
-            </table>
-          </div>
+        <!-- KPIS -->
+        <div class="kpis">
+          <div class="kpi"><h4>KPI 1</h4><span id="kpi1">0</span></div>
+          <div class="kpi"><h4>KPI 2</h4><span id="kpi2">0</span></div>
+          <div class="kpi"><h4>KPI 3</h4><span id="kpi3">0</span></div>
+          <div class="kpi"><h4>KPI 4</h4><span id="kpi4">0</span></div>
+          <div class="kpi"><h4>KPI 5</h4><span id="kpi5">0</span></div>
         </div>
 
-      </div>
+        <!-- ZONA SUPERIOR -->
+        <section class="zona-superior">
 
-      <!-- GRAFICO -->
-      <div class="zona-inferior">
-        <div class="grafico-box grande">
-          <div class="tabs">
-            <button class="tab active">TAB 1</button>
-            <button class="tab">TAB 2</button>
-            <button class="tab">TAB 3</button>
-            <button class="tab">TAB 4</button>
+          <!-- TABLA PRINCIPAL -->
+          <div class="tabla-contenedor">
+            <div class="titulo-tabla" id="titulo-tabla">TABLA PRINCIPAL</div>
+            <div class="tabla-scroll">
+              <table class="tabla-produccion">
+                <thead><tr id="theadTabla"></tr></thead>
+                <tbody id="tablaBody"></tbody>
+              </table>
+            </div>
           </div>
 
-          <div class="grafico-wrapper">
-            <canvas id="grafico"></canvas>
+          <!-- PANEL DETALLE -->
+          <div id="panel-detalles" class="tabla-contenedor">
+            <div class="titulo-tabla">DETALLES</div>
+            <div class="tabla-scroll">
+              <table class="tabla-detalle">
+                <thead>
+                  <tr>
+                    <th>Tipo</th>
+                    <th>Detalle</th>
+                    <th>Valor</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaDetalle"></tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      </div>
 
-    </main>
-  </div>
+        </section>
+
+        <!-- GRAFICO -->
+        <section class="zona-inferior">
+          <div class="grafico-box grande">
+            <div class="tabs"></div>
+            <div class="grafico-wrapper">
+              <canvas id="grafico"></canvas>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+  </div> <!-- FIN CONTENEDOR PRINCIPAL -->
 
   <script src="script.js"></script>
 </body>
 </html>
+
