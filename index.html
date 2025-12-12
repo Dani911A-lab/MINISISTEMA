@@ -25,7 +25,12 @@
 
       <!-- Sidebar -->
       <aside class="sidebar">
-        <div class="brand">MINISISTEMA</div>
+        <div class="brand">
+  <span class="brand-title">𒆙 MINISISTEMA</span><br>
+   <span class="brand-subtitle">___________________________</span><br>
+  <span class="brand-subtitle">Usuario:   Administrador</span><br>
+  <span class="brand-subtitle">Desarrollador:  Daniel Carandana ®  𝄃𝄃𝄂𝄂𝄀𝄁𝄃𝄂𝄂𝄃</span>
+</div>
         <nav class="menu">
           <a class="menu-item active" data-modulo="produccion">PRODUCCIÓN</a>
           <a class="menu-item" data-modulo="gastos">GASTOS</a>
@@ -127,7 +132,7 @@
       if(usuarioInput.value.trim()==="Administrador" && passwordInput.value.trim()==="123"){
         loginBox.style.display='none';
         contenido.style.display='flex';
-      } else loginError.textContent="Usuario o contraseña incorrectos";
+      } else loginError.textContent="⚠︎ Usuario o contraseña incorrectos";
     });
 
     [usuarioInput,passwordInput].forEach(i=>i.addEventListener('keyup',e=>{if(e.key==="Enter") btnLogin.click();}));
