@@ -31,11 +31,11 @@ const HECTAREAS = {
   "VAQUERIA": 61.4,
   "ESTRELLITA": 66.65,
   "PRIMAVERA": 67,
-  "MARIA": 252.16,
+  "LA MARIA": 252.16,
   "AGRO&SOL": 381.5
 };
 
-/* ===================== LOADER CONTROL ===================== */
+/* ===================== LOADER CONTROL CORREGIDO ===================== */
 
 let moduloCargado = {
   "Producción": false,
@@ -53,13 +53,13 @@ function showLoader(modulo) {
 
 function hideLoader(modulo) {
   if (moduloCargado[modulo]) return;
-
+  
   loader.style.opacity = "0";
   setTimeout(() => {
     loader.style.display = "none";
+    // Marcamos como cargado solo después de ocultarlo
+    moduloCargado[modulo] = true;
   }, 350);
-
-  moduloCargado[modulo] = true;
 }
 
 /* ================= URLs ================= */
@@ -274,8 +274,11 @@ function renderGrafico(tipo = tipoGrafico) {
 
   if (!datosFiltrados.length || headers.length < 4) {
     tabsContainer.innerHTML = "";
-    if (chart) chart.destroy();
-    chart = null;
+    if (chart) {
+      chart.data.labels = [];
+      chart.data.datasets = [];
+      chart.update();
+    }
     return;
   }
 
@@ -286,8 +289,6 @@ function renderGrafico(tipo = tipoGrafico) {
 
   const labels = datosFiltrados.map(x => `Sem ${x[headers[0]]}`);
   const valores = datosFiltrados.map(x => num(x[tipo]));
-
-  if (chart) chart.destroy();
 
   const pointLabelsPlugin = {
     id: "pointLabels",
@@ -312,39 +313,44 @@ function renderGrafico(tipo = tipoGrafico) {
 
   const ctx = document.getElementById("grafico");
 
-  // Calculamos máximo y añadimos margen superior 10%
   const maxValor = Math.max(...valores);
   const margenSuperior = maxValor * 0.1;
 
-  chart = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels,
-      datasets: [{
-        label: tipo,
-        data: valores,
-        tension: 0.4,
-        borderColor: "rgba(186,2,125,0.3)",
-        backgroundColor: "rgba(186,2,125,0.25)",
-        fill: true,
-        pointRadius: 0
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      elements: { line: { borderWidth: 2 } },
-      scales: {
-        x: { grid: { display: false } },
-        y: { 
-          grid: { color: "#e5e7eb" },
-          suggestedMax: maxValor + margenSuperior
+  if (!chart) {
+    chart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: tipo,
+          data: valores,
+          tension: 0.4,
+          borderColor: "rgba(186,2,125,0.3)",
+          backgroundColor: "rgba(186,2,125,0.25)",
+          fill: true,
+          pointRadius: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 800, easing: 'easeOutQuart' },
+        plugins: { legend: { display: false } },
+        elements: { line: { borderWidth: 2 } },
+        scales: {
+          x: { grid: { display: false } },
+          y: { grid: { color: "#e5e7eb" }, suggestedMax: maxValor + margenSuperior }
         }
-      }
-    },
-    plugins: [pointLabelsPlugin]
-  });
+      },
+      plugins: [pointLabelsPlugin]
+    });
+  } else {
+    chart.data.labels = labels;
+    chart.data.datasets[0].label = tipo;
+    chart.data.datasets[0].data = valores;
+    chart.options.scales.y.suggestedMax = maxValor + margenSuperior;
+    chart.update({ duration: 800, easing: 'easeOutQuart' });
+  }
 
   tabsContainer.innerHTML = "";
   headers.slice(3).forEach(head => {
@@ -355,6 +361,7 @@ function renderGrafico(tipo = tipoGrafico) {
     tabsContainer.appendChild(btn);
   });
 }
+
 
 /* ================= CAMBIO DE MÓDULO ================= */
 
@@ -403,5 +410,61 @@ haciendaSelect.addEventListener("change", () => {
 });
 
 /* ================= INICIO ================= */
+// Cargamos los datos iniciales sin mostrar loader
+(async () => {
+  if (!sheetURLs[currentModule]) return;
 
-cargarDatosModulo(currentModule);
+  const res = await fetch(sheetURLs[currentModule]);
+  const csv = await res.text();
+  const parsed = Papa.parse(csv.trim(), { skipEmptyLines: true });
+  const lines = parsed.data;
+  if (!lines.length) return;
+
+  const headers = lines[0];
+  headersModules[currentModule] = headers;
+
+  const data = {};
+  for (const row of lines.slice(1)) {
+    const empresa = row[1], hacienda = row[2];
+    if (!empresa || !hacienda) continue;
+
+    data[empresa] ??= {};
+    data[empresa][hacienda] ??= [];
+
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = row[i] ?? "");
+    data[empresa][hacienda].push(obj);
+  }
+
+  dataModules[currentModule] = data;
+
+  // Cargamos los detalles iniciales sin loader
+  const url = detallesURLs[currentModule];
+  if (url) {
+    const resDet = await fetch(url);
+    const csvDet = await resDet.text();
+    const parsedDet = Papa.parse(csvDet.trim(), { skipEmptyLines: true });
+    const linesDet = parsedDet.data;
+    if (linesDet.length) {
+      const headersDet = linesDet[0].map(h => h.trim());
+      const rowsDet = linesDet.slice(1);
+      const dataDet = {};
+      for (const row of rowsDet) {
+        const empresa = (row[1] ?? "").trim();
+        const hacienda = (row[2] ?? "").trim();
+        if (!empresa || !hacienda) continue;
+
+        dataDet[empresa] ??= {};
+        dataDet[empresa][hacienda] ??= [];
+
+        const obj = {};
+        headersDet.forEach((h, i) => obj[h] = (row[i] ?? "").replace(/\n/g, " ").trim());
+        dataDet[empresa][hacienda].push(obj);
+      }
+      dataDetalles = { data: dataDet, headers: headersDet };
+    }
+  }
+
+  actualizarUI();
+})();
+
