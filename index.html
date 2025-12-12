@@ -1,21 +1,19 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8">
   <title>Minisistema</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
-
 <body>
-  <!-- CONTENEDOR PRINCIPAL -->
   <div class="contenedor-principal">
 
-    <!-- LOADER (ADAPTADO AL JS) -->
+    <!-- Loader -->
     <div id="loader" class="loader-overlay">
       <div class="loader-box">
         <div class="loader-spinner"></div>
@@ -25,7 +23,7 @@
 
     <div class="app">
 
-      <!-- SIDEBAR -->
+      <!-- Sidebar -->
       <aside class="sidebar">
         <div class="brand">MINISISTEMA</div>
         <nav class="menu">
@@ -36,80 +34,103 @@
         </nav>
       </aside>
 
-      <!-- MAIN -->
+      <!-- Main -->
       <main class="main">
 
-        <!-- HEADER -->
-        <header class="header">
-          <h1 id="titulo">PRODUCCIÓN</h1>
-        </header>
-
-        <!-- SELECTORES -->
-        <div class="selectores">
-          <label for="empresaSelect">Empresa:</label>
-          <select id="empresaSelect"></select>
-
-          <label for="haciendaSelect">Hacienda:</label>
-          <select id="haciendaSelect"></select>
+        <!-- Login -->
+        <div id="loginBox" class="login-box">
+          <h2>Ingreso Administrador</h2>
+          <input type="text" id="usuario" placeholder="Usuario" value="Administrador" />
+          <input type="password" id="password" placeholder="Contraseña">
+          <button id="btnLogin">Ingresar</button>
+          <p id="loginError"></p>
         </div>
 
-        <!-- KPIS -->
-        <div class="kpis">
-          <div class="kpi"><h4>KPI 1</h4><span id="kpi1">0</span></div>
-          <div class="kpi"><h4>KPI 2</h4><span id="kpi2">0</span></div>
-          <div class="kpi"><h4>KPI 3</h4><span id="kpi3">0</span></div>
-          <div class="kpi"><h4>KPI 4</h4><span id="kpi4">0</span></div>
-          <div class="kpi"><h4>KPI 5</h4><span id="kpi5">0</span></div>
+        <!-- Contenido -->
+        <div id="contenido" class="contenido-principal" style="display:none; flex-direction:column; gap:24px; height:100%;">
+
+          <!-- Header -->
+          <header class="header"><h1 id="titulo">PRODUCCIÓN</h1></header>
+
+          <!-- Selectores -->
+          <div class="selectores">
+            <label for="empresaSelect">Empresa:</label>
+            <select id="empresaSelect"></select>
+            <label for="haciendaSelect">Hacienda:</label>
+            <select id="haciendaSelect"></select>
+          </div>
+
+          <!-- KPIs -->
+          <div class="kpis">
+            <div class="kpi"><h4>KPI 1</h4><span id="kpi1">0</span></div>
+            <div class="kpi"><h4>KPI 2</h4><span id="kpi2">0</span></div>
+            <div class="kpi"><h4>KPI 3</h4><span id="kpi3">0</span></div>
+            <div class="kpi"><h4>KPI 4</h4><span id="kpi4">0</span></div>
+            <div class="kpi"><h4>KPI 5</h4><span id="kpi5">0</span></div>
+          </div>
+
+          <!-- Zona superior: tablas y detalles -->
+          <section class="zona-superior">
+            <div class="tabla-contenedor">
+              <div class="titulo-tabla" id="titulo-tabla">TABLA PRINCIPAL</div>
+              <div class="tabla-scroll">
+                <table class="tabla-produccion">
+                  <thead><tr id="theadTabla"></tr></thead>
+                  <tbody id="tablaBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div id="panel-detalles" class="tabla-contenedor">
+              <div class="titulo-tabla">DETALLES</div>
+              <div class="tabla-scroll">
+                <table class="tabla-detalle">
+                  <thead>
+                    <tr>
+                      <th>Tipo</th>
+                      <th>Detalle</th>
+                      <th>Valor</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tablaDetalle"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Zona inferior: gráficos -->
+          <section class="zona-inferior">
+            <div class="grafico-box">
+              <div class="tabs"></div>
+              <div class="grafico-wrapper">
+                <canvas id="grafico"></canvas>
+              </div>
+            </div>
+          </section>
+
         </div>
-
-        <!-- ZONA SUPERIOR -->
-        <section class="zona-superior">
-
-          <!-- TABLA PRINCIPAL -->
-          <div class="tabla-contenedor">
-            <div class="titulo-tabla" id="titulo-tabla">TABLA PRINCIPAL</div>
-            <div class="tabla-scroll">
-              <table class="tabla-produccion">
-                <thead><tr id="theadTabla"></tr></thead>
-                <tbody id="tablaBody"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- PANEL DETALLE -->
-          <div id="panel-detalles" class="tabla-contenedor">
-            <div class="titulo-tabla">DETALLES</div>
-            <div class="tabla-scroll">
-              <table class="tabla-detalle">
-                <thead>
-                  <tr>
-                    <th>Tipo</th>
-                    <th>Detalle</th>
-                    <th>Valor</th>
-                  </tr>
-                </thead>
-                <tbody id="tablaDetalle"></tbody>
-              </table>
-            </div>
-          </div>
-
-        </section>
-
-        <!-- GRÁFICO -->
-        <section class="zona-inferior">
-          <div class="grafico-box grande">
-            <div class="tabs"></div>
-            <div class="grafico-wrapper">
-              <canvas id="grafico"></canvas>
-            </div>
-          </div>
-        </section>
-
       </main>
     </div>
-
-  </div> <!-- FIN CONTENEDOR PRINCIPAL -->
+  </div>
 
   <script src="script.js"></script>
+  <script>
+    // Login simple
+    const btnLogin = document.getElementById('btnLogin');
+    const usuarioInput = document.getElementById('usuario');
+    const passwordInput = document.getElementById('password');
+    const loginBox = document.getElementById('loginBox');
+    const contenido = document.getElementById('contenido');
+    const loginError = document.getElementById('loginError');
+
+    btnLogin.addEventListener('click', () => {
+      if(usuarioInput.value.trim()==="Administrador" && passwordInput.value.trim()==="123"){
+        loginBox.style.display='none';
+        contenido.style.display='flex';
+      } else loginError.textContent="Usuario o contraseña incorrectos";
+    });
+
+    [usuarioInput,passwordInput].forEach(i=>i.addEventListener('keyup',e=>{if(e.key==="Enter") btnLogin.click();}));
+  </script>
 </body>
 </html>
