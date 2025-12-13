@@ -34,18 +34,16 @@ body {
     overflow: hidden;
 }
 
-
 /* ================= TITULO PRINCIPAL ================= */
 #titulo {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-    font-size: 28px;           /* un poco más pequeño para elegancia */
-    font-weight: 500;           /* más fino que 700 */
+    font-size: 28px;
+    font-weight: 500;
     color: #ba027d;
-    letter-spacing: 0.3px;     /* más sutil */
+    letter-spacing: 0.3px;
     margin-bottom: 16px;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.08); /* sombra muy ligera */
+    text-shadow: 0 1px 1px rgba(0,0,0,0.08);
 }
-
 
 /* ================= SIDEBAR ================= */
 .sidebar {
@@ -89,8 +87,8 @@ body {
     font-weight: 400;
     color: #716e6e;
     display: block;
-    line-height: 1.05; /* más compacta */
-    margin-top: -10px; /* sube un poco el texto inferior */
+    line-height: 1.05;
+    margin-top: -10px;
 }
 
 .menu {
@@ -121,8 +119,8 @@ body {
 
 .menu-item[data-modulo="produccion"]::before { content:"📊"; }
 .menu-item[data-modulo="gastos"]::before { content:"💼"; }
-.menu-item[data-modulo="rrhh"]::before { content:"👥"; }
-.menu-item[data-modulo="cxc"]::before { content:"📄"; }
+.menu-item[data-modulo="liquidaciones"]::before { content:"💰"; }
+.menu-item[data-modulo="cxc"]::before { content:"🗳️"; }
 
 .menu-item.active::after {
     content: "";
@@ -184,13 +182,15 @@ body {
     transition: .2s;
 }
 
-.selectores select:hover { border-color: #3b82f6; }
+.selectores select:hover {
+    border-color: #3b82f6;
+}
+
 .selectores select:focus {
     border-color: #2563eb;
     outline: none;
     box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
 }
-
 
 /* ================= KPIs ================= */
 .kpis {
@@ -198,7 +198,7 @@ body {
     gap: 14px;
     overflow-x: auto;
     padding-bottom: 2px;
-    background: transparent; /* eliminamos cualquier fondo detrás */
+    background: transparent;
 }
 
 .kpi {
@@ -206,18 +206,18 @@ body {
     min-width: 100px;
     text-align: center;
     border-radius: 16px;
-    background: white; /* solo la tarjeta blanca */
-    border: none; /* eliminamos borde si se desea */
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.167); /* sombra suave opcional */
+    background: white;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.167);
     padding: 16px;
-    position: relative; /* para el fondo de olas */
+    position: relative;
     overflow: hidden;
 }
 
 .kpi h4 {
     font-size: 13px;
     font-weight: 600;
-    color: #6a6768;
+    color: #978774;
     margin-bottom: 6px;
 }
 
@@ -227,7 +227,6 @@ body {
     color: #092204;
 }
 
-/* Fondo de olas finas gris claro para tarjetas KPI */
 .kpi::before {
     content: "";
     position: absolute;
@@ -239,10 +238,8 @@ body {
     background-repeat: repeat;
     background-size: 40px 4px;
     pointer-events: none;
-    opacity: 0.8; /* ligeramente más tenue */
+    opacity: 0.8;
 }
-
-
 
 /* ================= ZONA SUPERIOR ================= */
 .zona-superior {
@@ -272,8 +269,14 @@ body {
     scrollbar-color: rgba(0,0,0,0.2) transparent;
 }
 
-.tabla-scroll::-webkit-scrollbar { width: 6px; }
-.tabla-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
+.tabla-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tabla-scroll::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.2);
+    border-radius: 4px;
+}
 
 table {
     width: 100%;
@@ -282,7 +285,10 @@ table {
     color: #01307a;
 }
 
-th, td { padding: 6px; text-align: center; }
+th, td {
+    padding: 6px;
+    text-align: center;
+}
 
 thead {
     position: sticky;
@@ -293,8 +299,13 @@ thead {
     color: #1b2c3d;
 }
 
-tbody tr:nth-child(even) { background: #f3f3f3; }
-tbody tr:hover { background: #e5edff; }
+tbody tr:nth-child(even) {
+    background: #f3f3f3;
+}
+
+tbody tr:hover {
+    background: #e5edff;
+}
 
 /* ================= ZONA INFERIOR ================= */
 .zona-inferior {
@@ -340,7 +351,7 @@ canvas {
     flex-direction: column;
     align-items: center;
     gap: 18px;
-    transition: none; /* quitar animación */
+    transition: none;
 }
 
 .login-box h2 {
@@ -382,7 +393,7 @@ canvas {
 
 .login-box button:hover {
     background: #ca0588;
-    transform: none; /* quitar movimiento hover */
+    transform: none;
 }
 
 #loginError {
@@ -395,14 +406,14 @@ canvas {
 /* ================= LOADER ================= */
 #loader {
     position: absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(255,255,255,0.6);
     backdrop-filter: blur(1px);
     display: none;
-    opacity:0;
+    opacity: 0;
     justify-content: center;
     align-items: center;
     transition: opacity .35s;
@@ -410,29 +421,29 @@ canvas {
 }
 
 .loader-box {
-    background:white;
-    padding:24px 36px;
-    border-radius:16px;
-    box-shadow:0 8px 20px rgba(0,0,0,0.2);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:14px;
+    background: white;
+    padding: 24px 36px;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
 }
 
 .loader-spinner {
-    width:48px;
-    height:48px;
-    border:5px solid #e0e0e0;
-    border-top:5px solid #ba027d;
-    border-radius:50%;
-    animation:spin 1s linear infinite;
+    width: 48px;
+    height: 48px;
+    border: 5px solid #e0e0e0;
+    border-top: 5px solid #ba027d;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }
 
 .loader-text {
-    font-size:16px;
-    color:#ba027d;
-    font-weight:600;
+    font-size: 16px;
+    color: #ba027d;
+    font-weight: 600;
 }
 
 @keyframes spin {
@@ -440,33 +451,123 @@ canvas {
     to { transform: rotate(360deg); }
 }
 
+/* ================= RESUMEN ================= */
+
+.modulo-resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.resumen-top {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;   /* 👈 separación con la tabla inferior */
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.card h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #222;
+}
+
+/* Saldo */
+.card-saldo .saldo-principal span {
+  font-size: 12px;
+  color: #666;
+}
+
+.card-saldo .saldo-principal strong {
+  display: block;
+  font-size: 28px;
+  margin-top: 6px;
+}
+
+.saldo-detalle {
+  display: flex;
+  gap: 40px;
+  margin-top: 20px;
+}
+
+.saldo-detalle small {
+  font-size: 11px;
+  color: #888;
+}
+
+.saldo-detalle span {
+  display: block;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* Actividad */
+.actividad-lista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.actividad-lista li {
+  font-size: 13px;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+/* Tabla */
+.card-tabla table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.card-tabla th,
+.card-tabla td {
+  padding: 12px;
+  font-size: 13px;
+  border-bottom: 1px solid #eee;
+}
+
+.card-tabla th {
+  text-align: left;
+  font-weight: 600;
+}
+
+
 /* ================= TABS ================= */
 .tabs {
-    display:flex;
-    gap:10px;
-    margin-bottom:6px;
+    display: flex;
+    gap: 10px;
+    margin-bottom: 6px;
 }
 
 .tab {
-    padding:6px 10px;
-    border:none;
-    cursor:pointer;
-    border-radius:8px;
-    background:#e5e7eb;
+    padding: 6px 10px;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    background: #e5e7eb;
 }
 
 .tab.active {
-    background:#ba027d;
-    color:#fff;
+    background: #ba027d;
+    color: #fff;
 }
 
 .titulo-tabla {
-    margin-bottom:6px;
-    font-size:12px;
-    font-weight:600;
-    color:#6b7280;
-    background:white;
-    position:sticky;
-    top:0;
-    z-index:10;
+    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
