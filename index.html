@@ -4,138 +4,213 @@
   <meta charset="utf-8">
   <title>Minisistema</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  
+
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
-  <div class="contenedor-principal">
 
-    <!-- Loader -->
-    <div id="loader" class="loader-overlay">
-      <div class="loader-box">
-        <div class="loader-spinner"></div>
-        <div class="loader-text">Cargando...</div>
-      </div>
-    </div>
+<div class="contenedor-principal">
 
-    <div class="app">
-
-      <!-- Sidebar -->
-      <aside class="sidebar">
-        <div class="brand">
-  <span class="brand-title">𒆙 MINISISTEMA</span><br>
-   <span class="brand-subtitle">___________________________</span><br>
-  <span class="brand-subtitle">Usuario:   Administrador</span><br>
-  <span class="brand-subtitle">Desarrollador:  Daniel Carandana ®  𝄃𝄃𝄂𝄂𝄀𝄁𝄃𝄂𝄂𝄃</span>
-</div>
-        <nav class="menu">
-          <a class="menu-item active" data-modulo="produccion">PRODUCCIÓN</a>
-          <a class="menu-item" data-modulo="gastos">GASTOS</a>
-          <a class="menu-item" data-modulo="liquidaciones">💰 LIQUIDACIONES</a>
-          <a class="menu-item" data-modulo="cxc">CUENTAS POR COBRAR</a>
-        </nav>
-      </aside>
-
-      <!-- Main -->
-      <main class="main">
-
-        <!-- Login -->
-        <div id="loginBox" class="login-box">
-          <h2>Ingreso Administrador</h2>
-          <input type="text" id="usuario" placeholder="Usuario" value="Administrador" />
-          <input type="password" id="password" placeholder="Contraseña">
-          <button id="btnLogin">Ingresar</button>
-          <p id="loginError"></p>
-        </div>
-
-        <!-- Contenido -->
-        <div id="contenido" class="contenido-principal" style="display:none; flex-direction:column; gap:24px; height:100%;">
-
-          <!-- Header -->
-          <header class="header"><h1 id="titulo">PRODUCCIÓN</h1></header>
-
-          <!-- Selectores -->
-          <div class="selectores">
-            <label for="empresaSelect">Empresa:</label>
-            <select id="empresaSelect"></select>
-            <label for="haciendaSelect">Hacienda:</label>
-            <select id="haciendaSelect"></select>
-          </div>
-
-          <!-- KPIs -->
-          <div class="kpis">
-            <div class="kpi"><h4>KPI 1</h4><span id="kpi1">0</span></div>
-            <div class="kpi"><h4>KPI 2</h4><span id="kpi2">0</span></div>
-            <div class="kpi"><h4>KPI 3</h4><span id="kpi3">0</span></div>
-            <div class="kpi"><h4>KPI 4</h4><span id="kpi4">0</span></div>
-            <div class="kpi"><h4>KPI 5</h4><span id="kpi5">0</span></div>
-          </div>
-
-          <!-- Zona superior: tablas y detalles -->
-          <section class="zona-superior">
-            <div class="tabla-contenedor">
-              <div class="titulo-tabla" id="titulo-tabla">TABLA PRINCIPAL</div>
-              <div class="tabla-scroll">
-                <table class="tabla-produccion">
-                  <thead><tr id="theadTabla"></tr></thead>
-                  <tbody id="tablaBody"></tbody>
-                </table>
-              </div>
-            </div>
-
-            <div id="panel-detalles" class="tabla-contenedor">
-              <div class="titulo-tabla">DETALLES</div>
-              <div class="tabla-scroll">
-                <table class="tabla-detalle">
-                  <thead>
-                    <tr>
-                      <th>Tipo</th>
-                      <th>Detalle</th>
-                      <th>Valor</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tablaDetalle"></tbody>
-                </table>
-              </div>
-            </div>
-          </section>
-
-          <!-- Zona inferior: gráficos -->
-          <section class="zona-inferior">
-            <div class="grafico-box">
-              <div class="tabs"></div>
-              <div class="grafico-wrapper">
-                <canvas id="grafico"></canvas>
-              </div>
-            </div>
-          </section>
-
-        </div>
-      </main>
+  <!-- Loader -->
+  <div id="loader" class="loader-overlay">
+    <div class="loader-box">
+      <div class="loader-spinner"></div>
+      <div class="loader-text">Cargando...</div>
     </div>
   </div>
 
-  <script src="script.js"></script>
-  <script>
-    // Login simple
-    const btnLogin = document.getElementById('btnLogin');
-    const usuarioInput = document.getElementById('usuario');
-    const passwordInput = document.getElementById('password');
-    const loginBox = document.getElementById('loginBox');
-    const contenido = document.getElementById('contenido');
-    const loginError = document.getElementById('loginError');
+  <div class="app">
 
-    btnLogin.addEventListener('click', () => {
-      if(usuarioInput.value.trim()==="Administrador" && passwordInput.value.trim()==="123"){
-        loginBox.style.display='none';
-        contenido.style.display='flex';
-      } else loginError.textContent="⚠︎ Usuario o contraseña incorrectos";
-    });
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-title">𒆙 MINISISTEMA</span><br>
+        <span class="brand-subtitle">___________________________</span><br>
+        <span class="brand-subtitle">Usuario: Administrador</span><br>
+        <span class="brand-subtitle">Desarrollador: Daniel Carandana ®  𝄃𝄃𝄂𝄂𝄀𝄁𝄃𝄂𝄂𝄃</span>
+      </div>
 
-    [usuarioInput,passwordInput].forEach(i=>i.addEventListener('keyup',e=>{if(e.key==="Enter") btnLogin.click();}));
-  </script>
+      <nav class="menu">
+        <a class="menu-item active" data-modulo="produccion">PRODUCCIÓN</a>
+        <a class="menu-item" data-modulo="gastos">GASTOS</a>
+        <a class="menu-item" data-modulo="liquidaciones">LIQUIDACIONES</a>
+        <a class="menu-item" data-modulo="cxc">CUENTAS POR COBRAR</a>
+        <a class="menu-item" data-modulo="resumen">🗃️ RESUMEN</a>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+
+      <!-- Login -->
+      <div id="loginBox" class="login-box">
+        <h2>Ingreso Administrador</h2>
+        <input type="text" id="usuario" placeholder="Usuario" value="Administrador">
+        <input type="password" id="password" placeholder="Contraseña">
+        <button id="btnLogin">Ingresar</button>
+        <p id="loginError"></p>
+      </div>
+
+      <!-- ================= CONTENIDO GENERAL ================= -->
+      <div id="contenido" class="contenido-principal" style="display:none; flex-direction:column; gap:24px; height:100%;">
+
+        <!-- Header -->
+        <header class="header">
+          <h1 id="titulo">PRODUCCIÓN</h1>
+        </header>
+
+        <!-- Selectores -->
+        <div class="selectores">
+          <label for="empresaSelect">Empresa:</label>
+          <select id="empresaSelect"></select>
+          <label for="haciendaSelect">Hacienda:</label>
+          <select id="haciendaSelect"></select>
+        </div>
+
+        <!-- KPIs -->
+        <div class="kpis">
+          <div class="kpi"><h4>KPI 1</h4><span id="kpi1">0</span></div>
+          <div class="kpi"><h4>KPI 2</h4><span id="kpi2">0</span></div>
+          <div class="kpi"><h4>KPI 3</h4><span id="kpi3">0</span></div>
+          <div class="kpi"><h4>KPI 4</h4><span id="kpi4">0</span></div>
+          <div class="kpi"><h4>KPI 5</h4><span id="kpi5">0</span></div>
+        </div>
+
+        <!-- ================= PRODUCCIÓN ================= -->
+        <section class="zona-superior" data-vista="produccion">
+          <div class="tabla-contenedor">
+            <div class="titulo-tabla" id="titulo-tabla">TABLA PRINCIPAL</div>
+            <div class="tabla-scroll">
+              <table class="tabla-produccion">
+                <thead>
+                  <tr id="theadTabla"></tr>
+                </thead>
+                <tbody id="tablaBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="panel-detalles" class="tabla-contenedor">
+            <div class="titulo-tabla">DETALLES</div>
+            <div class="tabla-scroll">
+              <table class="tabla-detalle">
+                <thead>
+                  <tr>
+                    <th>Tipo</th>
+                    <th>Detalle</th>
+                    <th>Valor</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaDetalle"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="zona-inferior" data-vista="produccion">
+          <div class="grafico-box">
+            <div class="tabs"></div>
+            <div class="grafico-wrapper">
+              <canvas id="grafico"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= RESUMEN ================= -->
+        <section id="modulo-resumen" class="modulo-resumen" data-vista="resumen" style="display:none;">
+
+          <div class="resumen-top">
+
+            <div class="card card-saldo">
+              <h3>📈 Consolidado de Flujo Productivo</h3>
+              <div class="saldo-principal">
+                <span>Total Utilidad</span>
+                <strong>$0.00</strong>
+              </div>
+
+              <div class="saldo-detalle">
+                <div>
+                  <small>Ingresos</small>
+                  <span>$0.00</span>
+                </div>
+                <div>
+                  <small>Egresos</small>
+                  <span>$0.00</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card card-actividad">
+              <h3>📥 Cartera Fruta por Cobrar</h3>
+              <ul class="actividad-lista">
+                <li>TECNIAGREX EXPORTADORA ↪ TECNIAGREX PRODUCTORA</li>
+                <li>TECNIAGREX EXPORTADORA ↪ KRASNAYA PRODUCTORA</li>
+                <li>KRASNAYA EXPORTADORA ↪ TECNIAGREX PRODUCTORA</li>
+                <li>KRASNAYA EXPORTADORA ↪ KRASNAYA PRODUCTORA</li>
+              </ul>
+            </div>
+
+          </div>
+
+          <div class="card card-tabla">
+            <h3>Cuentas Corrientes</h3>
+            <table class="tabla-resumen">
+              <thead>
+                <tr>
+                  <th>Número</th>
+                  <th>Saldo por confirmar</th>
+                  <th>Saldo efectivo</th>
+                  <th>Saldo disponible</th>
+                  <th>Saldo total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>000000</td>
+                  <td>$0.00</td>
+                  <td>$0.00</td>
+                  <td>$0.00</td>
+                  <td>$0.00</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </section>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="script.js"></script>
+
+<script>
+  const btnLogin = document.getElementById('btnLogin');
+  const usuarioInput = document.getElementById('usuario');
+  const passwordInput = document.getElementById('password');
+  const loginBox = document.getElementById('loginBox');
+  const contenido = document.getElementById('contenido');
+  const loginError = document.getElementById('loginError');
+
+  btnLogin.addEventListener('click', () => {
+    if (usuarioInput.value.trim() === "Administrador" && passwordInput.value.trim() === "123") {
+      loginBox.style.display = 'none';
+      contenido.style.display = 'flex';
+    } else {
+      loginError.textContent = "⚠︎ Usuario o contraseña incorrectos";
+    }
+  });
+
+  [usuarioInput, passwordInput].forEach(i =>
+    i.addEventListener('keyup', e => {
+      if (e.key === "Enter") btnLogin.click();
+    })
+  );
+</script>
+
 </body>
 </html>
