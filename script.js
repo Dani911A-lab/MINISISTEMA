@@ -375,10 +375,29 @@ moduloBtns.forEach(btn => {
       btn.dataset.modulo === "produccion" ? "Producción" :
       btn.dataset.modulo === "gastos" ? "Gastos" :
       btn.dataset.modulo === "liquidaciones" ? "Liquidaciones" :
-      btn.dataset.modulo === "cxc" ? "Cuentas por Cobrar" : currentModule;
+      btn.dataset.modulo === "cxc" ? "Cuentas por Cobrar" :
+      btn.dataset.modulo === "resumen" ? "Resumen" :
+      currentModule;
 
     tituloPrincipal.innerText = currentModule;
     tablaDetalle.innerHTML = "";
+
+    const resumenSection = document.getElementById("modulo-resumen");
+    const otherSections = document.querySelectorAll('[data-vista]');
+
+    if (currentModule === "Resumen") {
+        resumenSection.style.display = "flex";
+        kpisContainer.style.display = "none";
+        tabsContainer.innerHTML = "";
+        // Ocultamos solo las secciones de los módulos
+        otherSections.forEach(sec => { if(sec.dataset.vista !== "resumen") sec.style.display = "none"; });
+        actualizarResumen();
+        return;
+    } else {
+        resumenSection.style.display = "none";
+        kpisContainer.style.display = "flex";
+        otherSections.forEach(sec => { if(sec.dataset.vista !== "resumen") sec.style.display = "grid"; });
+    }
 
     if (!sheetURLs[currentModule]) {
       tablaBody.innerHTML = "";
@@ -392,6 +411,32 @@ moduloBtns.forEach(btn => {
     cargarDatosModulo(currentModule);
   });
 });
+
+
+// ================= FUNCIÓN ESTRUCTURA RESUMEN =================
+function actualizarResumen() {
+    // Saldo
+    const cardSaldo = document.querySelector(".card-saldo");
+    cardSaldo.querySelector(".saldo-principal strong").textContent = "$-567,325.34";
+    const spans = cardSaldo.querySelectorAll(".saldo-detalle span");
+    spans[0].textContent = "$8,357.65"; // ingresos
+    spans[1].textContent = "$1,226,433.42"; // egresos
+
+    // Tabla cuentas corrientes
+    const tbody = document.querySelector(".card-tabla tbody");
+    tbody.innerHTML = `
+        <tr>
+            <td>000000</td>
+            <td>$0.00</td>
+            <td>$0.00</td>
+            <td>$0.00</td>
+            <td>$0.00</td>
+        </tr>
+    `;
+}
+
+
+
 
 /* ================= SELECTORES ================= */
 
@@ -467,4 +512,3 @@ haciendaSelect.addEventListener("change", () => {
 
   actualizarUI();
 })();
-
