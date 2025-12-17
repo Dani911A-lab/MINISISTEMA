@@ -158,7 +158,7 @@ function renderTablaResumen() {
     renderGastos(totalIngresos, datos, cols);
 }
 
-// ================= FUNCION LISTA DE GASTOS CON ANIMACION =================
+// ================= FUNCION LISTA DE GASTOS CON PORCENTAJES SUAVES =================
 function renderGastos(totalIngresos, datos, cols) {
     const derecha = document.querySelector(".card-saldo .gastos-lista");
     derecha.innerHTML = "";
@@ -166,49 +166,76 @@ function renderGastos(totalIngresos, datos, cols) {
     derecha.style.flexDirection = "column";
     derecha.style.gap = "4px";
 
-    // Columnas de gastos entre Total Ingreso y Total Egreso
     const idxTotalIngreso = cols.findIndex(c => c.toLowerCase().includes("total ingresos"));
     const idxTotalEgreso = cols.findIndex(c => c.toLowerCase().includes("total egresos") || c.toLowerCase().includes("total gastos"));
     const gastosCols = cols.slice(idxTotalIngreso + 1, idxTotalEgreso);
 
-    // Calcular valor máximo entre Total Ingresos y todos los gastos
     const maxValor = Math.max(
         totalIngresos,
         ...gastosCols.map(col => datos.reduce((sum, f) => sum + (parseFloat((f[col] || "$0.00").replace(/[$,]/g, "")) || 0), 0))
     );
 
-    // Función auxiliar para crear barra
     function crearBarra(labelText, valor, color) {
         const fila = document.createElement("div");
         fila.style.display = "flex";
         fila.style.alignItems = "center";
 
+        // Label con viñeta
         const label = document.createElement("div");
-        label.textContent = labelText;
-        label.style.width = "120px";
+        label.style.display = "flex";
+        label.style.alignItems = "center";
+        label.style.width = "140px";
         label.style.fontSize = "12px";
+        label.style.fontWeight = "500";
+        label.style.color = "#666";
 
+        const viñeta = document.createElement("span");
+        viñeta.style.display = "inline-block";
+        viñeta.style.width = "8px";
+        viñeta.style.height = "8px";
+        viñeta.style.borderRadius = "50%";
+        viñeta.style.backgroundColor = color;
+        viñeta.style.marginRight = "6px";
+        viñeta.style.flexShrink = "0";
+
+        label.appendChild(viñeta);
+        label.appendChild(document.createTextNode(labelText));
+
+        // Barra de fondo
         const barraFondo = document.createElement("div");
         barraFondo.style.flex = "1";
         barraFondo.style.height = "12px";
-        barraFondo.style.background = "#eee";
+        barraFondo.style.background = "#f2f2f2";
         barraFondo.style.borderRadius = "6px";
-        barraFondo.style.marginLeft = "6px";
         barraFondo.style.overflow = "hidden";
+        barraFondo.style.position = "relative";
 
+        // Barra de color
         const barraColor = document.createElement("div");
         barraColor.style.height = "100%";
-        barraColor.style.width = "0%"; // iniciar desde 0 para animación
+        barraColor.style.width = "0%";
         barraColor.style.background = color;
         barraColor.style.borderRadius = "6px";
-        barraColor.style.transition = "width 0.6s ease"; // animación suave
+        barraColor.style.transition = "width 0.6s ease";
+
+        // Texto porcentaje suave
+        const porcentaje = document.createElement("span");
+        porcentaje.style.position = "absolute";
+        porcentaje.style.right = "6px";
+        porcentaje.style.top = "50%";
+        porcentaje.style.transform = "translateY(-50%)";
+        porcentaje.style.fontSize = "10px";
+        porcentaje.style.fontWeight = "600";
+        porcentaje.style.color = "#888"; // gris suave
+        porcentaje.textContent = totalIngresos > 0 ? `${Math.round((valor / totalIngresos) * 100)}%` : "0%";
 
         barraFondo.appendChild(barraColor);
+        barraFondo.appendChild(porcentaje);
+
         fila.appendChild(label);
         fila.appendChild(barraFondo);
         derecha.appendChild(fila);
 
-        // Animar a valor final
         setTimeout(() => {
             barraColor.style.width = `${maxValor > 0 ? (valor / maxValor) * 100 : 0}%`;
         }, 50);
@@ -216,13 +243,16 @@ function renderGastos(totalIngresos, datos, cols) {
         return fila;
     }
 
+    const colorIngreso = "#a8d5ba";
+    const colorGasto = "#f4c2c2";
+
     // Total Ingresos
-    crearBarra("Total Ingresos", totalIngresos, "#b3e6b3");
+    crearBarra("Total Ingresos", totalIngresos, colorIngreso);
 
     // Barras de gastos
     gastosCols.forEach(col => {
         const valor = datos.reduce((sum, f) => sum + (parseFloat((f[col] || "$0.00").replace(/[$,]/g, "")) || 0), 0);
-        crearBarra(col, valor, "#f4baba");
+        crearBarra(col, valor, colorGasto);
     });
 }
 
