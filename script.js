@@ -368,37 +368,54 @@ function renderGrafico(tipo = tipoGrafico) {
 moduloBtns.forEach(btn => {
   btn.addEventListener("click", () => {
 
+    // Quita la clase active de todos y ponla en el seleccionado
     moduloBtns.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
+    // Determina módulo actual
     currentModule =
       btn.dataset.modulo === "produccion" ? "Producción" :
       btn.dataset.modulo === "gastos" ? "Gastos" :
       btn.dataset.modulo === "liquidaciones" ? "Liquidaciones" :
-      btn.dataset.modulo === "cxc" ? "Cuentas por Cobrar" :
       btn.dataset.modulo === "resumen" ? "Resumen" :
       currentModule;
 
+    // Actualiza título principal
     tituloPrincipal.innerText = currentModule;
     tablaDetalle.innerHTML = "";
 
     const resumenSection = document.getElementById("modulo-resumen");
     const otherSections = document.querySelectorAll('[data-vista]');
 
-    if (currentModule === "Resumen") {
-        resumenSection.style.display = "flex";
-        kpisContainer.style.display = "none";
-        tabsContainer.innerHTML = "";
-        // Ocultamos solo las secciones de los módulos
-        otherSections.forEach(sec => { if(sec.dataset.vista !== "resumen") sec.style.display = "none"; });
-        actualizarResumen();
-        return;
-    } else {
-        resumenSection.style.display = "none";
-        kpisContainer.style.display = "flex";
-        otherSections.forEach(sec => { if(sec.dataset.vista !== "resumen") sec.style.display = "grid"; });
-    }
+if (currentModule === "Resumen") {
+  // Mostrar solo Resumen
+  resumenSection.style.display = "flex";
 
+  // Ocultar selectores y KPIs globales
+  const selectores = document.querySelectorAll('.selectores');
+  selectores.forEach(s => s.style.display = 'none');
+  kpisContainer.style.display = "none";
+  tabsContainer.innerHTML = "";
+
+  otherSections.forEach(sec => {
+    if (sec.dataset.vista !== "resumen") sec.style.display = "none";
+  });
+
+  // Llamar a función del modulo-resumen.js que genera tabla dinámica
+  cargarResumen(); 
+  return;
+} else {
+  // Mostrar módulo normal y ocultar Resumen
+  resumenSection.style.display = "none";
+  const selectores = document.querySelectorAll('.selectores');
+  selectores.forEach(s => s.style.display = 'flex');
+  kpisContainer.style.display = "flex";
+  otherSections.forEach(sec => {
+    if (sec.dataset.vista !== "resumen") sec.style.display = "grid";
+  });
+}
+
+    // Si no hay hoja para el módulo, limpia todo
     if (!sheetURLs[currentModule]) {
       tablaBody.innerHTML = "";
       theadTabla.innerHTML = "";
@@ -408,33 +425,10 @@ moduloBtns.forEach(btn => {
       return;
     }
 
+    // Carga datos normalmente
     cargarDatosModulo(currentModule);
   });
 });
-
-
-// ================= FUNCIÓN ESTRUCTURA RESUMEN =================
-function actualizarResumen() {
-    // Saldo
-    const cardSaldo = document.querySelector(".card-saldo");
-    cardSaldo.querySelector(".saldo-principal strong").textContent = "$-567,325.34";
-    const spans = cardSaldo.querySelectorAll(".saldo-detalle span");
-    spans[0].textContent = "$8,357.65"; // ingresos
-    spans[1].textContent = "$1,226,433.42"; // egresos
-
-    // Tabla cuentas corrientes
-    const tbody = document.querySelector(".card-tabla tbody");
-    tbody.innerHTML = `
-        <tr>
-            <td>000000</td>
-            <td>$0.00</td>
-            <td>$0.00</td>
-            <td>$0.00</td>
-            <td>$0.00</td>
-        </tr>
-    `;
-}
-
 
 
 
