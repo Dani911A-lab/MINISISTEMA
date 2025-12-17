@@ -1,431 +1,508 @@
 /* ================================================================
-   MÓDULO RESUMEN — KPIs IZQUIERDA + GASTOS DERECHA COMPACTO
+   MINI SISTEMA AGRÍCOLA — MÓDULOS DINÁMICOS CON DETALLES + LOADER
 ================================================================ */
 
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRk5A0GczheFss5URcUT0kHoaCEQvnPlLHBYJNjKULyhfLgolqwjqwttJlNTr50_mzxEByQ6yaCNCPS/pub?gid=0&single=true&output=csv";
+const moduloBtns = document.querySelectorAll(".menu-item");
+const empresaSelect = document.getElementById("empresaSelect");
+const haciendaSelect = document.getElementById("haciendaSelect");
+const tablaBody = document.getElementById("tablaBody");
+const theadTabla = document.getElementById("theadTabla");
+const tituloTabla = document.getElementById("titulo-tabla");
+const tituloPrincipal = document.getElementById("titulo");
+const tabsContainer = document.querySelector(".tabs");
+const kpisContainer = document.querySelector(".kpis");
+const tablaDetalle = document.getElementById("tablaDetalle");
+const loader = document.getElementById("loader");
 
-const tablaFlujo = document.querySelector(".tabla-flujo tbody");
-const theadFlujo = document.querySelector(".tabla-flujo thead tr");
+let currentModule = "Producción";
+let dataModules = {};
+let headersModules = {};
+let datosFiltrados = [];
+let chart = null;
+let tipoGrafico = null;
+let dataDetalles = null;
 
-const totalUtilidadElem = document.querySelector(".card-saldo .saldo-principal strong");
-const ingresosElem = document.querySelector(".card-saldo .saldo-detalle div:nth-child(1) span");
-const egresosElem = document.querySelector(".card-saldo .saldo-detalle div:nth-child(2) span");
+/* ===================== HECTÁREAS ===================== */
 
-const resumenEmpresaSelect = document.getElementById("resumenEmpresaSelect");
-const resumenHaciendaSelect = document.getElementById("resumenHaciendaSelect");
+const HECTAREAS = {
+  "PORVENIR": 94,
+  "ESPERANZA": 36,
+  "EL CISNE": 13,
+  "VAQUERIA": 61.4,
+  "ESTRELLITA": 66.65,
+  "PRIMAVERA": 67,
+  "LA MARIA": 252.16,
+  "AGRO&SOL": 381.5
+};
 
-const contenedorKPIs = document.querySelector(".card-saldo");
+/* ===================== LOADER CONTROL CORREGIDO ===================== */
 
-let datosOriginales = [];
-let headers = [];
-const colorValor = v => v >= 0 ? "#0b5394" : "#a73b3e";
+let moduloCargado = {
+  "Producción": false,
+  "Gastos": false,
+  "Liquidaciones": false
+};
 
-function formatoUSD(valor) {
-    return new Intl.NumberFormat("es-EC", {
-        style: "currency",
-        currency: "USD",
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(valor);
+function showLoader(modulo) {
+  if (moduloCargado[modulo]) return;  
+  loader.style.display = "flex";
+  requestAnimationFrame(() => {
+    loader.style.opacity = "1";
+  });
 }
 
-// ================= CARGA CSV =================
-function cargarResumen() {
-    Papa.parse(SHEET_URL, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: ({ data, meta }) => {
-            datosOriginales = data
-                .map(f => ({
-                    ...f,
-                    EMPRESA: (f.EMPRESA || "").trim(),
-                    HACIENDA: (f.HACIENDA || "").trim()
-                }))
-                .filter(f => f.EMPRESA !== "" && f.HACIENDA !== "");
-
-            headers = meta.fields;
-
-            llenarEmpresas();
-            renderTablaResumen();
-            insertarCarteraMinimalista();
-        }
-    });
+function hideLoader(modulo) {
+  if (moduloCargado[modulo]) return;
+  
+  loader.style.opacity = "0";
+  setTimeout(() => {
+    loader.style.display = "none";
+    // Marcamos como cargado solo después de ocultarlo
+    moduloCargado[modulo] = true;
+  }, 350);
 }
 
-function llenarEmpresas() {
-    let empresas = [...new Set(datosOriginales.map(f => f.EMPRESA))];
+/* ================= URLs ================= */
 
-    if (empresas.includes("GLOBAL")) {
-        empresas = ["GLOBAL", ...empresas.filter(e => e !== "GLOBAL")];
-    }
+const sheetURLs = {
+  "Producción": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRWUa0XHVhUxy79IY5bv2vppEWhA50Mye4loI4wCErMtGjSM7uP1MHWcCSb8ciUwi6YT2XO7iQhKhFq/pub?gid=0&single=true&output=csv",
+  "Gastos": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSGqKfSKtI7fdrgu6Ssz43ZFgXrrTf4B8fzWdKt6PAUJiRibhzE75cW9YNAN10T6cU3ORoqst4OTZiD/pub?gid=0&single=true&output=csv",
+  "Liquidaciones": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSme-Xj4jhGJVEG8QwV-plPbjvhvpEhLRY4gII1Uf85wmRBeVXa-adOqMkUl8EpQMBKvZdUg504-Zd2/pub?gid=0&single=true&output=csv"
+};
 
-    resumenEmpresaSelect.innerHTML = "";
-    empresas.forEach(e => resumenEmpresaSelect.append(new Option(e, e)));
-    resumenEmpresaSelect.value = "GLOBAL";
+const detallesURLs = {
+  "Producción": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQITw3POfXAnKjpDthFO7nX3S6-hz-KtZbwI3C0LZMdu-XcGMggDEY3SmbSCxAMzdCsagvVtoDudINJ/pub?gid=0&single=true&output=csv",
+  "Gastos": "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3yzCzfky5TeiKNaNOcIdNeGAvotBE-RincIpCt4kOIEnV8-rLLWk4tG0xaNG6Xt2jT2FsTVqr6iC1/pub?gid=0&single=true&output=csv"
+};
 
-    actualizarHaciendas();
+/* ================= UTILIDADES ================= */
+
+const num = v => +((v || "0").toString().replace(/[$,%\s]/g, "")) || 0;
+
+/* ================= CARGA DE MÓDULO ================= */
+
+async function cargarDatosModulo(modulo) {
+  showLoader(modulo);
+
+  if (!sheetURLs[modulo]) { 
+    hideLoader(modulo);
+    return; 
+  }
+
+  if (dataModules[modulo]) {
+    actualizarUI();
+    hideLoader(modulo);
+    return;
+  }
+
+  const res = await fetch(sheetURLs[modulo]);
+  const csv = await res.text();
+  const parsed = Papa.parse(csv.trim(), { skipEmptyLines: true });
+  const lines = parsed.data;
+  if (!lines.length) return;
+
+  const headers = lines[0];
+  headersModules[modulo] = headers;
+
+  const data = {};
+  for (const row of lines.slice(1)) {
+    const empresa = row[1], hacienda = row[2];
+    if (!empresa || !hacienda) continue;
+
+    data[empresa] ??= {};
+    data[empresa][hacienda] ??= [];
+
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = row[i] ?? "");
+    data[empresa][hacienda].push(obj);
+  }
+
+  dataModules[modulo] = data;
+
+  await cargarDetalles(modulo);
+  actualizarUI();
+
+  hideLoader(modulo);
 }
 
+/* ================= CARGA DETALLES ================= */
 
-function actualizarHaciendas() {
-    const empresa = resumenEmpresaSelect.value;
-    let haciendas = [...new Set(
-        datosOriginales
-            .filter(f => f.EMPRESA === empresa)
-            .map(f => f.HACIENDA)
-    )];
+async function cargarDetalles(modulo) {
+  const url = detallesURLs[modulo];
+  if (!url) return;
 
-    if (haciendas.includes("GLOBAL")) {
-        haciendas = ["GLOBAL", ...haciendas.filter(h => h !== "GLOBAL")];
-    }
+  const res = await fetch(url);
+  const csv = await res.text();
+  const parsed = Papa.parse(csv.trim(), { skipEmptyLines: true });
+  const lines = parsed.data;
+  if (!lines.length) return;
 
-    resumenHaciendaSelect.innerHTML = "";
-    haciendas.forEach(h => resumenHaciendaSelect.append(new Option(h, h)));
-    resumenHaciendaSelect.value = "GLOBAL";
+  const headers = lines[0].map(h => h.trim());
+  const rows = lines.slice(1);
+
+  const data = {};
+  for (const row of rows) {
+    const empresa = (row[1] ?? "").trim();
+    const hacienda = (row[2] ?? "").trim();
+    if (!empresa || !hacienda) continue;
+
+    data[empresa] ??= {};
+    data[empresa][hacienda] ??= [];
+
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = (row[i] ?? "").replace(/\n/g, " ").trim());
+    data[empresa][hacienda].push(obj);
+  }
+
+  dataDetalles = { data, headers };
 }
 
-function filtrarDatos() {
-    return datosOriginales.filter(f =>
-        f.EMPRESA === resumenEmpresaSelect.value &&
-        f.HACIENDA === resumenHaciendaSelect.value
+/* ================= SELECTORES ================= */
+
+function actualizarUI() {
+  cargarEmpresas();
+  empresaSelect.value = "GLOBAL";
+  cargarHaciendas();
+  haciendaSelect.value = "GLOBAL";
+  tipoGrafico = null;
+
+  actualizarKPIs();
+  renderTabla();
+  renderGrafico();
+  tablaDetalle.innerHTML = "";
+}
+
+function cargarEmpresas() {
+  const data = dataModules[currentModule] || {};
+  const empresas = new Set(["GLOBAL", ...Object.keys(data)]);
+  empresaSelect.innerHTML = [...empresas].map(e => `<option>${e}</option>`).join("");
+}
+
+function cargarHaciendas() {
+  const e = empresaSelect.value;
+  const data = dataModules[currentModule] || {};
+  const haciendas = new Set(["GLOBAL", ...(data[e] ? Object.keys(data[e]) : [])]);
+  haciendaSelect.innerHTML = [...haciendas].map(h => `<option>${h}</option>`).join("");
+}
+
+/* ================= KPIs ================= */
+
+function actualizarKPIs() {
+  const data = dataModules[currentModule] || {};
+  const headers = headersModules[currentModule] || [];
+  const e = empresaSelect.value, h = haciendaSelect.value;
+
+  const filaKPI = (data[e]?.[h] || []).find(x => x[headers[0]] == "0");
+
+  kpisContainer.innerHTML = "";
+  headers.slice(3).forEach(head => {
+    const value = filaKPI ? (filaKPI[head] ?? "0") : "0";
+    const div = document.createElement("div");
+    div.className = "kpi";
+    div.innerHTML = `<h4>${head}</h4><span>${value}</span>`;
+    kpisContainer.appendChild(div);
+  });
+}
+
+/* ================= TABLA ================= */
+
+function renderTabla() {
+  const data = dataModules[currentModule] || {};
+  const headers = headersModules[currentModule] || [];
+  const e = empresaSelect.value, h = haciendaSelect.value;
+
+  datosFiltrados = (data[e]?.[h] || []).filter(r => r[headers[0]] != "0");
+
+  const headersTabla = headers.filter((_, idx) => idx !== 1 && idx !== 2);
+  theadTabla.innerHTML = headersTabla.map(hd => `<th>${hd}</th>`).join("");
+
+  let colClickeable = -1;
+
+  if (currentModule === "Producción")
+    colClickeable = headersTabla.findIndex(h => h.toLowerCase().includes("rechazado"));
+
+  if (currentModule === "Gastos")
+    colClickeable = headersTabla.findIndex(h => h.toLowerCase() === "riego");
+
+  tablaBody.innerHTML = datosFiltrados.map(row =>
+    `<tr>${headersTabla.map((hd, colIndex) => {
+      let valor = row[hd] ?? "";
+      if (colIndex === colClickeable) {
+        valor = `<span class="detalle-clic" data-semana="${row[headers[0]]}" data-col="${hd}">${valor}</span>`;
+      }
+      return `<td>${valor}</td>`;
+    }).join("")}</tr>`
+  ).join("");
+
+  document.querySelectorAll(".detalle-clic").forEach(el => {
+    el.addEventListener("click", () =>
+      renderDetalles(el.dataset.semana, el.dataset.col)
     );
+  });
+
+  const hect =
+    HECTAREAS[h.trim().toUpperCase()] ?
+    ` (${HECTAREAS[h.trim().toUpperCase()]} has)` :
+    "";
+
+  tituloTabla.innerText = `${currentModule} - ${e} / ${h}${hect}`;
 }
 
-// ================= TABLA + KPIs =================
-function renderTablaResumen() {
-    const datos = filtrarDatos();
-    const cols = headers.filter(h =>
-        !h.toLowerCase().includes("empresa") &&
-        !h.toLowerCase().includes("hacienda")
-    );
+/* ================= DETALLES ================= */
 
-    theadFlujo.innerHTML = "";
-    let idxSEM = -1;
-    let idxUtilProd = -1;
-
-    cols.forEach((c, i) => {
-        const th = document.createElement("th");
-        th.textContent = c;
-        const name = c.toLowerCase();
-        if (name === "sem") { idxSEM = i; th.style.width = "55px"; th.style.background = "#eeeeee"; }
-        if (name.includes("utilidad productiva")) { idxUtilProd = i; th.style.width = "160px"; th.style.background = "#fff6cc"; }
-        theadFlujo.appendChild(th);
-    });
-
-    const totales = Object.fromEntries(cols.map(c => [c, 0]));
-    tablaFlujo.innerHTML = "";
-
-    datos.forEach(fila => {
-        const tr = document.createElement("tr");
-        cols.forEach((c, i) => {
-            const td = document.createElement("td");
-            const txt = fila[c] || "$0.00";
-            const num = parseFloat(txt.replace(/[$,]/g, "")) || 0;
-            totales[c] += num;
-            td.textContent = txt;
-            const name = c.toLowerCase();
-            if (i === idxSEM) td.style.width = "55px";
-            if (i === idxUtilProd) td.style.width = "160px";
-            if (name.includes("total ingresos")) td.style.background = "#d8f0d8";
-            if (name.includes("total egresos") || name.includes("total gastos")) td.style.background = "#f8d8d8";
-            if (i === idxSEM) { td.style.background = "#f3f3f3"; td.style.fontWeight = "600"; }
-            if (i === idxUtilProd) { td.style.background = num < 0 ? "#f8d8d8" : "#fff9d9"; td.style.fontWeight = "600"; }
-            tr.appendChild(td);
-        });
-        tablaFlujo.appendChild(tr);
-    });
-
-    // Total fila
-    const trTotal = document.createElement("tr");
-    trTotal.className = "total";
-    cols.forEach((c, i) => {
-        const td = document.createElement("td");
-        const name = c.toLowerCase();
-        if (i === 0) { td.textContent = "TOTAL"; td.style.fontWeight = "700"; }
-        else {
-            const v = totales[c];
-            td.textContent = formatoUSD(v);
-            td.style.color = colorValor(v);
-            if (name.includes("total ingresos")) td.style.background = "#b3e6b3";
-            if (name.includes("total egresos") || name.includes("total gastos")) td.style.background = "#f0b3b3";
-            if (i === idxUtilProd) { td.style.background = v < 0 ? "#f0b3b3" : "#ffe699"; td.style.fontWeight = "700"; td.style.fontSize = "15px"; }
-        }
-        if (i === idxSEM) { td.style.width = "55px"; td.style.background = "#dfdfdf"; td.style.fontWeight = "700"; }
-        if (i === idxUtilProd) td.style.width = "160px";
-        trTotal.appendChild(td);
-    });
-    tablaFlujo.appendChild(trTotal);
-
-    // KPIs
-    let totalIngresos = 0;
-    let totalEgresos = 0;
-    let totalUtilidad = 0;
-
-    cols.forEach(c => {
-        const v = totales[c] || 0;
-        const k = c.toLowerCase();
-        if (k.includes("ingresos")) { ingresosElem.textContent = formatoUSD(v); ingresosElem.style.color = "#1b5e20"; totalIngresos = v; }
-        if (k.includes("egresos") || k.includes("gastos")) { egresosElem.textContent = formatoUSD(v); egresosElem.style.color = "#7a1f1f"; totalEgresos = v; }
-        if (k.includes("utilidad")) { totalUtilidadElem.textContent = formatoUSD(v); totalUtilidadElem.style.color = colorValor(v); totalUtilidad = v; }
-    });
-
-    // Lista de gastos reales alineada a la derecha
-    renderGastos(totalIngresos, datos, cols);
-}
-
-// ================= FUNCION LISTA DE GASTOS CON PORCENTAJES SUAVES =================
-function renderGastos(totalIngresos, datos, cols) {
-    const derecha = document.querySelector(".card-saldo .gastos-lista");
-    derecha.innerHTML = "";
-    derecha.style.display = "flex";
-    derecha.style.flexDirection = "column";
-    derecha.style.gap = "4px";
-
-    const idxTotalIngreso = cols.findIndex(c => c.toLowerCase().includes("total ingresos"));
-    const idxTotalEgreso = cols.findIndex(c => c.toLowerCase().includes("total egresos") || c.toLowerCase().includes("total gastos"));
-    const gastosCols = cols.slice(idxTotalIngreso + 1, idxTotalEgreso);
-
-    const maxValor = Math.max(
-        totalIngresos,
-        ...gastosCols.map(col => datos.reduce((sum, f) => sum + (parseFloat((f[col] || "$0.00").replace(/[$,]/g, "")) || 0), 0))
-    );
-
-    function crearBarra(labelText, valor, color) {
-        const fila = document.createElement("div");
-        fila.style.display = "flex";
-        fila.style.alignItems = "center";
-
-        // Label con viñeta
-        const label = document.createElement("div");
-        label.style.display = "flex";
-        label.style.alignItems = "center";
-        label.style.width = "140px";
-        label.style.fontSize = "12px";
-        label.style.fontWeight = "500";
-        label.style.color = "#666";
-
-        const viñeta = document.createElement("span");
-        viñeta.style.display = "inline-block";
-        viñeta.style.width = "8px";
-        viñeta.style.height = "8px";
-        viñeta.style.borderRadius = "50%";
-        viñeta.style.backgroundColor = color;
-        viñeta.style.marginRight = "6px";
-        viñeta.style.flexShrink = "0";
-
-        label.appendChild(viñeta);
-        label.appendChild(document.createTextNode(labelText));
-
-        // Barra de fondo
-        const barraFondo = document.createElement("div");
-        barraFondo.style.flex = "1";
-        barraFondo.style.height = "12px";
-        barraFondo.style.background = "#f2f2f2";
-        barraFondo.style.borderRadius = "6px";
-        barraFondo.style.overflow = "hidden";
-        barraFondo.style.position = "relative";
-
-        // Barra de color
-        const barraColor = document.createElement("div");
-        barraColor.style.height = "100%";
-        barraColor.style.width = "0%";
-        barraColor.style.background = color;
-        barraColor.style.borderRadius = "6px";
-        barraColor.style.transition = "width 0.6s ease";
-
-        // Texto porcentaje suave
-        const porcentaje = document.createElement("span");
-        porcentaje.style.position = "absolute";
-        porcentaje.style.right = "6px";
-        porcentaje.style.top = "50%";
-        porcentaje.style.transform = "translateY(-50%)";
-        porcentaje.style.fontSize = "10px";
-        porcentaje.style.fontWeight = "600";
-        porcentaje.style.color = "#888"; // gris suave
-        porcentaje.textContent = totalIngresos > 0 ? `${Math.round((valor / totalIngresos) * 100)}%` : "0%";
-
-        barraFondo.appendChild(barraColor);
-        barraFondo.appendChild(porcentaje);
-
-        fila.appendChild(label);
-        fila.appendChild(barraFondo);
-        derecha.appendChild(fila);
-
-        setTimeout(() => {
-            barraColor.style.width = `${maxValor > 0 ? (valor / maxValor) * 100 : 0}%`;
-        }, 50);
-
-        return fila;
-    }
-
-    const colorIngreso = "#a8d5ba";
-    const colorGasto = "#f4c2c2";
-
-    // Total Ingresos
-    crearBarra("Total Ingresos", totalIngresos, colorIngreso);
-
-    // Barras de gastos
-    gastosCols.forEach(col => {
-        const valor = datos.reduce((sum, f) => sum + (parseFloat((f[col] || "$0.00").replace(/[$,]/g, "")) || 0), 0);
-        crearBarra(col, valor, colorGasto);
-    });
-}
-
-
-
-// ================= CARTERA MINIMALISTA + BANNER =================
-function insertarCarteraMinimalista() {
-    const card = document.querySelector(".card-actividad");
-    if (!card || card.querySelector(".cartera-minimalista")) return;
-
-    const empresas = [
-        { nombre: "TECNIAGREX S.A.", semanas: [0, 55714.88, 0, 0] },
-        { nombre: "KRASNAYA S.A.", semanas: [2264.64, 108256.51, 0, 0] }
-    ];
-
-    const totalColumnas = empresas[0].semanas.map((_, i) =>
-        empresas.reduce((sum, e) => sum + e.semanas[i], 0)
-    );
-    const totalGlobal = totalColumnas.reduce((a, b) => a + b, 0);
-
-    let html = `
-        <div class="cartera-minimalista" style="
-            border-radius:6px;
-            overflow:hidden;
-            background:#fafafa;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.11);
-            font-family:'Segoe UI', sans-serif;
-            font-size:13px;
-            margin-bottom:6px;
-        ">
-            <div style="
-                display:flex;
-                font-weight:600;
-                background:#ffffffff;
-                color:#555;
-                padding:6px 8px;
-                border-bottom:1px solid #ccc;
-            ">
-                <div style="flex:2;">EMPRESA</div>
-                <div style="flex:1; text-align:center;">SEM 48</div>
-                <div style="flex:1; text-align:center;">SEM 49</div>
-                <div style="flex:1; text-align:center;">SEM 50</div>
-                <div style="flex:1; text-align:center;">SEM 51</div>
-                <div style="flex:1; text-align:center;">TOTAL</div>
-            </div>
-    `;
-
-    empresas.forEach(e => {
-        const total = e.semanas.reduce((a, b) => a + b, 0);
-        html += `
-            <div style="
-                display:flex;
-                padding:6px 8px;
-                border-bottom:1px solid #ddd;
-                background:#fff;
-            ">
-                <div style="flex:2; font-weight:500;">${e.nombre}</div>
-                ${e.semanas.map(s => `
-                    <div style="flex:1; text-align:center; color:${s === 0 ? '#999' : '#0b5394'};">
-                        ${formatoUSD(s)}
-                    </div>
-                `).join("")}
-                <div style="
-                    flex:1;
-                    text-align:center;
-                    font-weight:600;
-                    color:${total === 0 ? '#ffffffff' : '#000'};
-                ">
-                    ${formatoUSD(total)}
-                </div>
-            </div>
-        `;
-    });
-
-    html += `
+function renderDetalles() {
+  tablaDetalle.innerHTML = `
+    <tr>
+      <td colspan="3" style="padding: 60px 0;">
         <div style="
-            display:flex;
-            padding:6px 8px;
-            background:#f5f5f5;
-            font-weight:700;
-            border-top:1px solid #ccccccff;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
         ">
-            <div style="flex:2; text-align:right;">TOTAL</div>
-            ${totalColumnas.map(t => `
-                <div style="flex:1; text-align:center;">${formatoUSD(t)}</div>
-            `).join("")}
-            <div style="flex:1; text-align:center;">${formatoUSD(totalGlobal)}</div>
+          <span style="font-size:20px; color:#ba027d;">🚧 Módulo en mantenimiento 🚧</span>
         </div>
-        </div>
+      </td>
+    </tr>
+  `;
+}
 
-        <!-- BANNER INFORMATIVO -->
-<div class="cartera-banner" style="
-    background:#fff1f8;
-    color:#757474;
-    font-size:18px;
-    display:flex;
-    align-items:center;
-    justify-content:flex-start;;
-    gap:6px;
-    padding:4px 6px;
-    border-radius:4px;
-    margin-top:14px;
-">
-    <span style="
-        color:#db0871;
-        font-weight:100;
-        font-size:20px;
-        line-height:1;
-    ">🛈</span>
-    <span>
-    Valores tentativos sem 49</span>
-</div>
-    `;
+/* ================= GRÁFICO ================= */
 
-    card.insertAdjacentHTML("beforeend", html);
+function renderGrafico(tipo = tipoGrafico) {
+  const headers = headersModules[currentModule] || [];
+
+  if (!datosFiltrados.length || headers.length < 4) {
+    tabsContainer.innerHTML = "";
+    if (chart) {
+      chart.data.labels = [];
+      chart.data.datasets = [];
+      chart.update();
+    }
+    return;
+  }
+
+  if (!tipo) {
+    tipo = headers[3];
+    tipoGrafico = tipo;
+  }
+
+  const labels = datosFiltrados.map(x => `Sem ${x[headers[0]]}`);
+  const valores = datosFiltrados.map(x => num(x[tipo]));
+
+  const pointLabelsPlugin = {
+    id: "pointLabels",
+    beforeDatasetsDraw(chartInstance) {
+      const { ctx } = chartInstance;
+      chartInstance.data.datasets.forEach((dataset, i) => {
+        const meta = chartInstance.getDatasetMeta(i);
+        meta.data.forEach((point, index) => {
+          const value = dataset.data[index];
+          const formattedValue = new Intl.NumberFormat('es-EC').format(value);
+
+          ctx.save();
+          ctx.fillStyle = "#484848ff";
+          ctx.font = "11px -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(formattedValue, point.x, point.y - 8);
+          ctx.restore();
+        });
+      });
+    }
+  };
+
+  const ctx = document.getElementById("grafico");
+
+  const maxValor = Math.max(...valores);
+  const margenSuperior = maxValor * 0.1;
+
+  if (!chart) {
+    chart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: tipo,
+          data: valores,
+          tension: 0.4,
+          borderColor: "rgba(186,2,125,0.3)",
+          backgroundColor: "rgba(186,2,125,0.25)",
+          fill: true,
+          pointRadius: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 800, easing: 'easeOutQuart' },
+        plugins: { legend: { display: false } },
+        elements: { line: { borderWidth: 2 } },
+        scales: {
+          x: { grid: { display: false } },
+          y: { grid: { color: "#e5e7eb" }, suggestedMax: maxValor + margenSuperior }
+        }
+      },
+      plugins: [pointLabelsPlugin]
+    });
+  } else {
+    chart.data.labels = labels;
+    chart.data.datasets[0].label = tipo;
+    chart.data.datasets[0].data = valores;
+    chart.options.scales.y.suggestedMax = maxValor + margenSuperior;
+    chart.update({ duration: 800, easing: 'easeOutQuart' });
+  }
+
+  tabsContainer.innerHTML = "";
+  headers.slice(3).forEach(head => {
+    const btn = document.createElement("button");
+    btn.className = "tab" + (head === tipo ? " active" : "");
+    btn.textContent = head;
+    btn.onclick = () => { tipoGrafico = head; renderGrafico(head); };
+    tabsContainer.appendChild(btn);
+  });
 }
 
 
-resumenEmpresaSelect.addEventListener("change", () => {
-    actualizarHaciendas();
-    renderTablaResumen();
-});
-resumenHaciendaSelect.addEventListener("change", renderTablaResumen);
+/* ================= CAMBIO DE MÓDULO ================= */
 
-document.addEventListener("DOMContentLoaded", cargarResumen);
+moduloBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
 
-// ================= AGREGAR IMAGEN ENTRE TOTAL UTILIDAD E INGRESOS/EGRESOS, PEGADA A LA IZQUIERDA =================
-function insertarBarritaImagen() {
-    const contenedor = document.querySelector(".card-saldo");
+    // Quita la clase active de todos y ponla en el seleccionado
+    moduloBtns.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
 
-    // Evitar duplicar la imagen
-    if (contenedor.querySelector(".barrita-imagen")) return;
+    // Determina módulo actual
+    currentModule =
+      btn.dataset.modulo === "produccion" ? "Producción" :
+      btn.dataset.modulo === "gastos" ? "Gastos" :
+      btn.dataset.modulo === "liquidaciones" ? "Liquidaciones" :
+      btn.dataset.modulo === "resumen" ? "Resumen" :
+      currentModule;
 
-    const imgWrapper = document.createElement("div");
-    imgWrapper.style.display = "flex";
-    imgWrapper.style.justifyContent = "flex-start"; // pegada a la izquierda
-    imgWrapper.style.alignItems = "center";
-    imgWrapper.style.margin = "6px 0"; // margen arriba y abajo
+    // Actualiza título principal
+    tituloPrincipal.innerText = currentModule;
+    tablaDetalle.innerHTML = "";
 
-    const img = document.createElement("img");
-    img.src = "barrita.png"; // ruta local
-    img.alt = "Barrita decorativa";
-    img.className = "barrita-imagen";
-    img.style.width = "80px"; // tamaño pequeño
-    img.style.height = "auto"; 
-    img.style.objectFit = "contain";
+    const resumenSection = document.getElementById("modulo-resumen");
+    const otherSections = document.querySelectorAll('[data-vista]');
 
-    imgWrapper.appendChild(img);
+if (currentModule === "Resumen") {
+  // Mostrar solo Resumen
+  resumenSection.style.display = "flex";
 
-    // Insertar justo **entre Total Utilidad y Ingresos/Egresos**
-    const totalUtilidadElem = contenedor.querySelector(".saldo-principal");
-    totalUtilidadElem.insertAdjacentElement("afterend", imgWrapper);
+  // Ocultar selectores y KPIs globales
+  const selectores = document.querySelectorAll('.selectores');
+  selectores.forEach(s => s.style.display = 'none');
+  kpisContainer.style.display = "none";
+  tabsContainer.innerHTML = "";
+
+  otherSections.forEach(sec => {
+    if (sec.dataset.vista !== "resumen") sec.style.display = "none";
+  });
+
+  // Llamar a función del modulo-resumen.js que genera tabla dinámica
+  cargarResumen(); 
+  return;
+} else {
+  // Mostrar módulo normal y ocultar Resumen
+  resumenSection.style.display = "none";
+  const selectores = document.querySelectorAll('.selectores');
+  selectores.forEach(s => s.style.display = 'flex');
+  kpisContainer.style.display = "flex";
+  otherSections.forEach(sec => {
+    if (sec.dataset.vista !== "resumen") sec.style.display = "grid";
+  });
 }
 
-// Llamar función después de cargar KPIs
-document.addEventListener("DOMContentLoaded", () => {
-    insertarBarritaImagen();
+    // Si no hay hoja para el módulo, limpia todo
+    if (!sheetURLs[currentModule]) {
+      tablaBody.innerHTML = "";
+      theadTabla.innerHTML = "";
+      kpisContainer.innerHTML = "";
+      tabsContainer.innerHTML = "";
+      if (chart) { chart.destroy(); chart = null; }
+      return;
+    }
+
+    // Carga datos normalmente
+    cargarDatosModulo(currentModule);
+  });
 });
 
 
+
+/* ================= SELECTORES ================= */
+
+empresaSelect.addEventListener("change", () => {
+  actualizarKPIs();
+  cargarHaciendas();
+  haciendaSelect.value = "GLOBAL";
+  renderTabla();
+  renderGrafico();
+});
+
+haciendaSelect.addEventListener("change", () => {
+  actualizarKPIs();
+  renderTabla();
+  renderGrafico();
+});
+
+/* ================= INICIO ================= */
+// Cargamos los datos iniciales sin mostrar loader
+(async () => {
+  if (!sheetURLs[currentModule]) return;
+
+  const res = await fetch(sheetURLs[currentModule]);
+  const csv = await res.text();
+  const parsed = Papa.parse(csv.trim(), { skipEmptyLines: true });
+  const lines = parsed.data;
+  if (!lines.length) return;
+
+  const headers = lines[0];
+  headersModules[currentModule] = headers;
+
+  const data = {};
+  for (const row of lines.slice(1)) {
+    const empresa = row[1], hacienda = row[2];
+    if (!empresa || !hacienda) continue;
+
+    data[empresa] ??= {};
+    data[empresa][hacienda] ??= [];
+
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = row[i] ?? "");
+    data[empresa][hacienda].push(obj);
+  }
+
+  dataModules[currentModule] = data;
+
+  // Cargamos los detalles iniciales sin loader
+  const url = detallesURLs[currentModule];
+  if (url) {
+    const resDet = await fetch(url);
+    const csvDet = await resDet.text();
+    const parsedDet = Papa.parse(csvDet.trim(), { skipEmptyLines: true });
+    const linesDet = parsedDet.data;
+    if (linesDet.length) {
+      const headersDet = linesDet[0].map(h => h.trim());
+      const rowsDet = linesDet.slice(1);
+      const dataDet = {};
+      for (const row of rowsDet) {
+        const empresa = (row[1] ?? "").trim();
+        const hacienda = (row[2] ?? "").trim();
+        if (!empresa || !hacienda) continue;
+
+        dataDet[empresa] ??= {};
+        dataDet[empresa][hacienda] ??= [];
+
+        const obj = {};
+        headersDet.forEach((h, i) => obj[h] = (row[i] ?? "").replace(/\n/g, " ").trim());
+        dataDet[empresa][hacienda].push(obj);
+      }
+      dataDetalles = { data: dataDet, headers: headersDet };
+    }
+  }
+
+  actualizarUI();
+})();
