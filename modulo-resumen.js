@@ -447,78 +447,179 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 
-  // ================= IMPRIMIR REPORTE DE FLUJOS =================
 
-  function imprimirFlujoDetallado() {
-    const contenedor = document.querySelector(".card-tabla");
 
-    if (!contenedor) {
-      alert("No se encontró la tabla Flujo Detallado");
-      return;
+
+// ================= IMPRIMIR REPORTE DE FLUJOS =================
+function imprimirFlujoDetallado() {
+
+    const tablaFlujo = document.querySelector(".card-tabla");
+    const consolidado = document.querySelector(".card-saldo");
+
+    if (!tablaFlujo || !consolidado) {
+        alert("No se encontró el contenido para imprimir");
+        return;
     }
 
-    const ventana = window.open("", "_blank");
+    const empresa = resumenEmpresaSelect.value;
+    const hacienda = resumenHaciendaSelect.value;
+
+    let titulo = "FLUJO PRODUCTIVO";
+    if (hacienda && hacienda !== "GLOBAL") {
+        titulo += ` HACIENDA ${hacienda}`;
+    } else if (empresa && empresa !== "GLOBAL") {
+        titulo += ` – ${empresa}`;
+    }
+
+    const fecha = new Date().toLocaleDateString("es-EC");
+
+    const ventana = window.open("", "_blank", "width=1200,height=800");
 
     ventana.document.write(`
-      <html>
-        <head>
-          <title>Flujo Detallado</title>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>${titulo}</title>
 
-          <!-- Tus estilos reales -->
-          <link rel="stylesheet" href="styles.css">
+<style>
+@page {
+    size: A4 landscape;
+    margin: 10mm;
+}
 
-          <style>
-            @page {
-              size: A4 landscape;
-              margin: 8mm;
-            }
+* {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
 
-            * {
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
+body {
+    font-family: Comfortaa, "Segoe UI", sans-serif;
+    background: #fff;
+    color: #000;
+    zoom: 0.82;
+}
 
-            body {
-              font-family: Comfortaa, sans-serif;
-              zoom: 0.82;
-              background: #fff;
-            }
+/* ================= ENCABEZADO ================= */
+.print-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 22px;
+}
 
-            .card {
-              box-shadow: none !important;
-            }
+.ph-top {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #555;
+    margin-bottom: 6px;
+}
 
-            table {
-              width: 100% !important;
-              border-collapse: collapse !important;
-            }
+.ph-title {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
 
-            th, td {
-              border: 1px solid rgba(0,0,0,0.6) !important;
-            }
+/* ================= SEPARADOR ================= */
+.print-separador {
+    height: 14px;
+}
 
-            .tabla-scroll {
-              overflow: visible !important;
-              max-height: none !important;
-            }
+/* ================= TARJETAS ================= */
+.card {
+    box-shadow: none !important;
+    border-radius: 8px !important;
+    border: 1px solid #444 !important;
+    margin-bottom: 22px;
+    padding: 10px;
+}
 
-            button {
-              display: none !important;
-            }
-          </style>
-        </head>
+/* ================= TABLAS ================= */
+table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+}
 
-        <body>
-          ${contenedor.outerHTML}
-        </body>
-      </html>
+th {
+    background: #f2f2f2 !important;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    border: 1px solid #444 !important;
+    padding: 5px 6px !important;
+}
+
+td {
+    font-size: 11px;
+    padding: 4px 6px !important;
+    border: 1px solid #555 !important;
+}
+
+tbody tr:nth-child(even) {
+    background: #fafafa !important;
+}
+
+/* ================= TOTALES ================= */
+tr.total td {
+    font-weight: 700 !important;
+    border-top: 2px solid #000 !important;
+    background: #eaeaea !important;
+}
+
+/* ================= CONSOLIDADO ================= */
+.saldo-principal strong {
+    font-size: 16px !important;
+}
+
+.saldo-detalle span {
+    font-size: 12px !important;
+}
+
+.gastos-lista div {
+    page-break-inside: avoid;
+}
+
+/* ================= LIMPIEZA ================= */
+button,
+select,
+input,
+canvas {
+    display: none !important;
+}
+</style>
+</head>
+
+<body>
+
+<div class="print-header">
+    <div class="ph-top">
+        <span>MINI SISTEMA AGRÍCOLA</span>
+        <span>${fecha}</span>
+    </div>
+    <div class="ph-title">${titulo}</div>
+</div>
+
+<div class="print-separador"></div>
+
+${tablaFlujo.outerHTML}
+
+${consolidado.outerHTML}
+
+<script>
+    window.onload = () => {
+        window.print();
+        window.onafterprint = () => window.close();
+    };
+</script>
+
+</body>
+</html>
     `);
 
     ventana.document.close();
-    ventana.focus();
-    ventana.print();
-    ventana.close();
-  }
-
-
-
+}
