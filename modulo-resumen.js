@@ -54,19 +54,35 @@ function cargarResumen() {
 }
 
 function llenarEmpresas() {
-    const empresas = [...new Set(datosOriginales.map(f => f.EMPRESA))];
+    let empresas = [...new Set(datosOriginales.map(f => f.EMPRESA))];
+
+    if (empresas.includes("GLOBAL")) {
+        empresas = ["GLOBAL", ...empresas.filter(e => e !== "GLOBAL")];
+    }
+
     resumenEmpresaSelect.innerHTML = "";
     empresas.forEach(e => resumenEmpresaSelect.append(new Option(e, e)));
-    resumenEmpresaSelect.value = empresas.includes("GLOBAL") ? "GLOBAL" : empresas[0];
+    resumenEmpresaSelect.value = "GLOBAL";
+
     actualizarHaciendas();
 }
 
+
 function actualizarHaciendas() {
     const empresa = resumenEmpresaSelect.value;
-    const haciendas = [...new Set(datosOriginales.filter(f => f.EMPRESA === empresa).map(f => f.HACIENDA))];
+    let haciendas = [...new Set(
+        datosOriginales
+            .filter(f => f.EMPRESA === empresa)
+            .map(f => f.HACIENDA)
+    )];
+
+    if (haciendas.includes("GLOBAL")) {
+        haciendas = ["GLOBAL", ...haciendas.filter(h => h !== "GLOBAL")];
+    }
+
     resumenHaciendaSelect.innerHTML = "";
     haciendas.forEach(h => resumenHaciendaSelect.append(new Option(h, h)));
-    resumenHaciendaSelect.value = haciendas.includes("GLOBAL") ? "GLOBAL" : haciendas[0];
+    resumenHaciendaSelect.value = "GLOBAL";
 }
 
 function filtrarDatos() {
@@ -258,14 +274,14 @@ function renderGastos(totalIngresos, datos, cols) {
 
 
 
-// ================= CARTERA MINIMALISTA =================
+// ================= CARTERA MINIMALISTA + BANNER =================
 function insertarCarteraMinimalista() {
     const card = document.querySelector(".card-actividad");
     if (!card || card.querySelector(".cartera-minimalista")) return;
 
     const empresas = [
-        { nombre: "TECNIAGREX S.A.", semanas: [1000, 2000, 1500, 2500] },
-        { nombre: "KRASNAYA S.A.", semanas: [500, 800, 1200, 1000] }
+        { nombre: "TECNIAGREX S.A.", semanas: [0, 55714.88, 0, 0] },
+        { nombre: "KRASNAYA S.A.", semanas: [2264.64, 108256.51, 0, 0] }
     ];
 
     const totalColumnas = empresas[0].semanas.map((_, i) =>
@@ -278,14 +294,15 @@ function insertarCarteraMinimalista() {
             border-radius:6px;
             overflow:hidden;
             background:#fafafa;
-            box-shadow:0 1px 3px rgba(0,0,0,0.08);
-            font-family: 'Segoe UI', sans-serif;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.17);
+            font-family:'Segoe UI', sans-serif;
             font-size:13px;
+            margin-bottom:6px;
         ">
             <div style="
                 display:flex;
                 font-weight:600;
-                background:#f0f0f0;
+                background:#ffffffff;
                 color:#555;
                 padding:6px 8px;
                 border-bottom:1px solid #ccc;
@@ -309,8 +326,19 @@ function insertarCarteraMinimalista() {
                 background:#fff;
             ">
                 <div style="flex:2; font-weight:500;">${e.nombre}</div>
-                ${e.semanas.map(s => `<div style="flex:1; text-align:center;">${formatoUSD(s)}</div>`).join("")}
-                <div style="flex:1; text-align:center; font-weight:600;">${formatoUSD(total)}</div>
+                ${e.semanas.map(s => `
+                    <div style="flex:1; text-align:center; color:${s === 0 ? '#999' : '#0b5394'};">
+                        ${formatoUSD(s)}
+                    </div>
+                `).join("")}
+                <div style="
+                    flex:1;
+                    text-align:center;
+                    font-weight:600;
+                    color:${total === 0 ? '#ffffffff' : '#000'};
+                ">
+                    ${formatoUSD(total)}
+                </div>
             </div>
         `;
     });
@@ -321,17 +349,43 @@ function insertarCarteraMinimalista() {
             padding:6px 8px;
             background:#f5f5f5;
             font-weight:700;
-            border-top:1px solid #ccc;
+            border-top:1px solid #ccccccff;
         ">
             <div style="flex:2; text-align:right;">TOTAL</div>
-            ${totalColumnas.map(t => `<div style="flex:1; text-align:center;">${formatoUSD(t)}</div>`).join("")}
+            ${totalColumnas.map(t => `
+                <div style="flex:1; text-align:center;">${formatoUSD(t)}</div>
+            `).join("")}
             <div style="flex:1; text-align:center;">${formatoUSD(totalGlobal)}</div>
         </div>
+        </div>
+
+        <!-- BANNER INFORMATIVO -->
+<div class="cartera-banner" style="
+    background:#fff1f8;
+    color:#757474;
+    font-size:18px;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;;
+    gap:6px;
+    padding:4px 6px;
+    border-radius:4px;
+    margin-top:14px;
+">
+    <span style="
+        color:#db0871;
+        font-weight:100;
+        font-size:20px;
+        line-height:1;
+    ">🛈</span>
+    <span>
+    Valores tentativos sem 49</span>
+</div>
     `;
 
-    html += `</div>`;
     card.insertAdjacentHTML("beforeend", html);
 }
+
 
 resumenEmpresaSelect.addEventListener("change", () => {
     actualizarHaciendas();
@@ -340,3 +394,131 @@ resumenEmpresaSelect.addEventListener("change", () => {
 resumenHaciendaSelect.addEventListener("change", renderTablaResumen);
 
 document.addEventListener("DOMContentLoaded", cargarResumen);
+
+// ================= AGREGAR IMAGEN ENTRE TOTAL UTILIDAD E INGRESOS/EGRESOS, PEGADA A LA IZQUIERDA =================
+function insertarBarritaImagen() {
+    const contenedor = document.querySelector(".card-saldo");
+
+    // Evitar duplicar la imagen
+    if (contenedor.querySelector(".barrita-imagen")) return;
+
+    const imgWrapper = document.createElement("div");
+    imgWrapper.style.display = "flex";
+    imgWrapper.style.justifyContent = "flex-start"; // pegada a la izquierda
+    imgWrapper.style.alignItems = "center";
+    imgWrapper.style.margin = "6px 0"; // margen arriba y abajo
+
+    const img = document.createElement("img");
+    img.src = "barrita.png"; // ruta local
+    img.alt = "Barrita decorativa";
+    img.className = "barrita-imagen";
+    img.style.width = "80px"; // tamaño pequeño
+    img.style.height = "auto"; 
+    img.style.objectFit = "contain";
+
+    imgWrapper.appendChild(img);
+
+    // Insertar justo **entre Total Utilidad y Ingresos/Egresos**
+    const totalUtilidadElem = contenedor.querySelector(".saldo-principal");
+    totalUtilidadElem.insertAdjacentElement("afterend", imgWrapper);
+}
+
+// Llamar función después de cargar KPIs
+document.addEventListener("DOMContentLoaded", () => {
+    insertarBarritaImagen();
+});
+
+  document.addEventListener("click", function (e) {
+    if (e.target.id === "btnImprimirFlujo") {
+      imprimirFlujoDetallado();
+    }
+  });
+
+  document.addEventListener("click", function (e) {
+    if (e.target.id === "btnImprimirFlujo") {
+      imprimirFlujoDetallado();
+    }
+  });
+
+  document.addEventListener("click", function (e) {
+    if (e.target.id === "btnImprimirFlujo") {
+      imprimirFlujoDetallado();
+    }
+  });
+
+
+  // ================= IMPRIMIR REPORTE DE FLUJOS =================
+
+  function imprimirFlujoDetallado() {
+    const contenedor = document.querySelector(".card-tabla");
+
+    if (!contenedor) {
+      alert("No se encontró la tabla Flujo Detallado");
+      return;
+    }
+
+    const ventana = window.open("", "_blank");
+
+    ventana.document.write(`
+      <html>
+        <head>
+          <title>Flujo Detallado</title>
+
+          <!-- Tus estilos reales -->
+          <link rel="stylesheet" href="styles.css">
+
+          <style>
+            @page {
+              size: A4 landscape;
+              margin: 8mm;
+            }
+
+            * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+
+            body {
+              font-family: Comfortaa, sans-serif;
+              zoom: 0.82;
+              background: #fff;
+            }
+
+            .card {
+              box-shadow: none !important;
+            }
+
+            table {
+              width: 100% !important;
+              border-collapse: collapse !important;
+            }
+
+            th, td {
+              border: 1px solid rgba(0,0,0,0.6) !important;
+            }
+
+            .tabla-scroll {
+              overflow: visible !important;
+              max-height: none !important;
+            }
+
+            button {
+              display: none !important;
+            }
+          </style>
+        </head>
+
+        <body>
+          ${contenedor.outerHTML}
+        </body>
+      </html>
+    `);
+
+    ventana.document.close();
+    ventana.focus();
+    ventana.print();
+    ventana.close();
+  }
+
+
+
