@@ -10,6 +10,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
 <body>
 
 <div class="contenedor-principal">
@@ -27,7 +29,7 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="brand">
-        <span class="brand-title">𒆙 MINISISTEMA</span><br>
+        <span class="brand-title">𒆙 PORTAL-AGRO</span><br>
         <span class="brand-subtitle">___________________________</span><br>
         <span class="brand-subtitle">Usuario: Administrador</span><br>
         <span class="brand-subtitle">Desarrollador: Daniel Carandana ®</span>
@@ -132,22 +134,30 @@
     </div>
   </div>
 
-  <!-- Contenedor Consolidado de Flujo Productivo -->
+  <!-- ================= CONSOLIDADO SUPERIOR ================= -->
   <div class="resumen-top" style="display:flex; gap:12px; align-items:flex-start;">
 
-    <!-- Consolidado KPIs + Gastos -->
-    <div class="card card-saldo" style="flex:1; display:flex; flex-direction:row; gap:12px; align-items:flex-start;">
+    <!-- ================= CONSOLIDADO KPIs + GASTOS ================= -->
+    <div class="card card-saldo" style="
+      flex:1;
+      display:flex;
+      flex-direction:row;
+      gap:12px;
+      align-items:flex-start;
+    ">
 
-      <!-- Izquierda: KPIs principales -->
+      <!-- Izquierda: KPIs -->
       <div class="kpis-wrapper" style="flex:1; display:flex; flex-direction:column;">
-        <h3 style="margin-bottom:6px;">📈 Consolidado de Flujo Productivo</h3>
+        <h3 style="margin-bottom:6px; font-size:15px;">
+          📈 Consolidado de Flujo Productivo
+        </h3>
 
-        <div class="saldo-principal" style="margin-bottom:8px;">
+        <div class="saldo-principal" style="margin-bottom:6px;">
           <span>Total Utilidad</span>
           <strong>$0.00</strong>
         </div>
 
-        <div class="saldo-detalle" style="display:flex; gap:12px; margin-bottom:0px;">
+        <div class="saldo-detalle" style="display:flex; gap:12px;">
           <div>
             <small>Ingresos</small>
             <span>$0.00</span>
@@ -159,24 +169,60 @@
         </div>
       </div>
 
-      <!-- Derecha: Lista de gastos -->
-      <div class="gastos-lista" style="flex:1; display:flex; flex-direction:column; gap:4px; margin-top:0px;">
-        <!-- JS insertará aquí cada gasto con su barra proporcional al ingreso -->
+      <!-- Derecha: Gastos -->
+      <div class="gastos-lista" style="
+        flex:1;
+        display:flex;
+        flex-direction:column;
+        gap:4px;
+        margin-top:0;
+      ">
+        <!-- JS inserta gastos -->
       </div>
 
     </div>
 
-    <!-- Lado derecho: Cartera -->
-    <div class="card card-actividad" style="flex:1;">
-      <h3>📥 Cartera Fruta por Cobrar</h3>
-      <ul class="actividad-lista"></ul>
+    <!-- ================= CARTERA ================= -->
+    <div class="card card-actividad" style="
+      flex:1;
+      padding:10px;
+    ">
+      <h3 style="
+        margin-bottom:6px;
+        font-size:14px;
+        font-weight:600;
+        color: rgb(46, 46, 46);
+      ">
+        ⎙ Cartera Fruta por Cobrar
+      </h3>
+
+      <!-- JS insertará aquí .cartera-minimalista -->
     </div>
 
   </div>
 
-  <!-- Tabla Flujo Detallado -->
+  <!-- ================= TABLA FLUJO ================= -->
   <div class="card card-tabla" style="margin-top:12px;">
-    <h3>⌨︎ Flujo Detallado</h3>
+    <div style="
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:6px;
+">
+  <h3 style="font-size:14px; margin:0;">▤ Flujo Detallado</h3>
+
+  <button id="btnImprimirFlujo" style="
+    padding:4px 10px;
+    font-size:12px;
+    border-radius:6px;
+    border:1px solid #ccc;
+    background:#fff;
+    cursor:pointer;
+  ">
+    🖨 Imprimir
+  </button>
+</div>
+
     <div class="tabla-scroll">
       <table class="tabla-flujo">
         <thead>
@@ -191,6 +237,7 @@
 
 
 
+
       </div>
     </main>
   </div>
@@ -200,6 +247,7 @@
 <script src="modulo-resumen.js"></script>
 
 <script>
+  const contenedorPrincipal = document.querySelector(".contenedor-principal");
   const btnLogin = document.getElementById('btnLogin');
   const usuarioInput = document.getElementById('usuario');
   const passwordInput = document.getElementById('password');
@@ -207,8 +255,12 @@
   const contenido = document.getElementById('contenido');
   const loginError = document.getElementById('loginError');
 
+  // Fondo SOLO para login
+  contenedorPrincipal.classList.add("login-fondo");
+
   btnLogin.addEventListener('click', () => {
     if (usuarioInput.value.trim() === "Administrador" && passwordInput.value.trim() === "123") {
+      contenedorPrincipal.classList.remove("login-fondo");
       loginBox.style.display = 'none';
       contenido.style.display = 'flex';
     } else {
