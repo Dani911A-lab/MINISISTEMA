@@ -11,21 +11,32 @@
 }
 
 body {
-    background: linear-gradient(135deg, #d9d8e0 0%, #a8c1b8 100%);
+    background: linear-gradient(135deg, #d9d8e0 0%, #c9cdcb 100%);
     overflow: hidden;
 }
 
 .contenedor-principal {
-    margin: 20px;
-    padding: 10px;
-    border-radius: 24px;
-    background: #f6f6f6;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-    height: calc(100vh - 40px);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+  margin: 20px;
+  padding: 10px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle, rgba(219, 219, 219, 0.796) 1px, transparent 1px),
+    linear-gradient(
+      180deg,
+      #f5f5f5 0%,
+      #ffffff 45%,
+      #e9edf3 100%
+    );
+  background-size:
+    20px 20px,
+    100% 100%;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
+
 
 .app {
     display: flex;
@@ -49,7 +60,7 @@ body {
 .sidebar {
     width: 230px;
     padding: 26px 20px;
-    background: rgba(255,255,255,0.4);
+    background: rgba(255, 255, 255, 0.4);
     backdrop-filter: blur(22px);
     border-right: 1px solid rgba(255,255,255,0.3);
     border-radius: 0 22px 22px 0;
@@ -562,11 +573,12 @@ canvas {
   display: flex;
   flex-direction: column;
   height: 420px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  border: 1px solid #fbfbfb;
+  border-radius: 16px;
   overflow: hidden;
   background-color: #fff;
   padding: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.064);
 }
 
 .tabla-scroll {
@@ -655,3 +667,7 @@ canvas {
   background: white;
 }
 
+.contenedor-principal.login-fondo {
+    background-size: cover;
+    min-height: 100vh;
+}
