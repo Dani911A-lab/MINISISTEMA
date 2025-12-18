@@ -434,7 +434,7 @@ function insertarCarteraMinimalista() {
         line-height:1;
     ">🛈</span>
     <span>
-    Valores tentativos sem 49</span>
+    Semanas 50-51 en proceso de Liquidacion.</span>
 </div>
     `;
 
