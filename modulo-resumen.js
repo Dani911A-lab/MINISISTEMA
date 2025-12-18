@@ -92,6 +92,10 @@ function filtrarDatos() {
     );
 }
 
+
+
+
+
 // ================= TABLA + KPIs =================
 function renderTablaResumen() {
     const datos = filtrarDatos();
@@ -116,6 +120,9 @@ function renderTablaResumen() {
     const totales = Object.fromEntries(cols.map(c => [c, 0]));
     tablaFlujo.innerHTML = "";
 
+    let semanasGanancia = 0;
+    let semanasPerdida = 0;
+
     datos.forEach(fila => {
         const tr = document.createElement("tr");
         cols.forEach((c, i) => {
@@ -124,55 +131,103 @@ function renderTablaResumen() {
             const num = parseFloat(txt.replace(/[$,]/g, "")) || 0;
             totales[c] += num;
             td.textContent = txt;
+
             const name = c.toLowerCase();
             if (i === idxSEM) td.style.width = "55px";
             if (i === idxUtilProd) td.style.width = "160px";
             if (name.includes("total ingresos")) td.style.background = "#d8f0d8";
             if (name.includes("total egresos") || name.includes("total gastos")) td.style.background = "#f8d8d8";
             if (i === idxSEM) { td.style.background = "#f3f3f3"; td.style.fontWeight = "600"; }
-            if (i === idxUtilProd) { td.style.background = num < 0 ? "#f8d8d8" : "#fff9d9"; td.style.fontWeight = "600"; }
+            if (i === idxUtilProd) {
+                td.style.background = num < 0 ? "#f8d8d8" : "#fff9d9";
+                td.style.fontWeight = "600";
+                if (num >= 0) semanasGanancia++;
+                else semanasPerdida++;
+            }
             tr.appendChild(td);
         });
         tablaFlujo.appendChild(tr);
     });
 
-    // Total fila
+    // ================= TEXTO DINÁMICO JUNTO AL TÍTULO =================
+    const titulo = document.querySelector(".card-tabla h3, .card-tabla h2");
+    if (titulo) {
+        let info = titulo.querySelector(".semanas-info");
+        if (!info) {
+            info = document.createElement("span");
+            info.className = "semanas-info";
+            info.style.fontSize = "13px";
+            info.style.fontWeight = "500";
+            info.style.color = "#888";
+            info.style.marginLeft = "10px";
+            titulo.appendChild(info);
+        }
+        info.textContent = `Semanas en Ganancia: ${semanasGanancia} - Semanas en Pérdida: ${semanasPerdida}`;
+    }
+
+    // ================= FILA TOTAL =================
     const trTotal = document.createElement("tr");
     trTotal.className = "total";
+
     cols.forEach((c, i) => {
         const td = document.createElement("td");
         const name = c.toLowerCase();
-        if (i === 0) { td.textContent = "TOTAL"; td.style.fontWeight = "700"; }
-        else {
+
+        if (i === 0) {
+            td.textContent = "TOTAL";
+            td.style.fontWeight = "700";
+        } else {
             const v = totales[c];
             td.textContent = formatoUSD(v);
             td.style.color = colorValor(v);
             if (name.includes("total ingresos")) td.style.background = "#b3e6b3";
             if (name.includes("total egresos") || name.includes("total gastos")) td.style.background = "#f0b3b3";
-            if (i === idxUtilProd) { td.style.background = v < 0 ? "#f0b3b3" : "#ffe699"; td.style.fontWeight = "700"; td.style.fontSize = "15px"; }
+            if (i === idxUtilProd) {
+                td.style.background = v < 0 ? "#f0b3b3" : "#ffe699";
+                td.style.fontWeight = "700";
+                td.style.fontSize = "15px";
+            }
         }
-        if (i === idxSEM) { td.style.width = "55px"; td.style.background = "#dfdfdf"; td.style.fontWeight = "700"; }
+
+        if (i === idxSEM) {
+            td.style.width = "55px";
+            td.style.background = "#dfdfdf";
+            td.style.fontWeight = "700";
+        }
         if (i === idxUtilProd) td.style.width = "160px";
+
         trTotal.appendChild(td);
     });
+
     tablaFlujo.appendChild(trTotal);
 
-    // KPIs
+    // ================= KPIs =================
     let totalIngresos = 0;
     let totalEgresos = 0;
-    let totalUtilidad = 0;
 
     cols.forEach(c => {
         const v = totales[c] || 0;
         const k = c.toLowerCase();
-        if (k.includes("ingresos")) { ingresosElem.textContent = formatoUSD(v); ingresosElem.style.color = "#1b5e20"; totalIngresos = v; }
-        if (k.includes("egresos") || k.includes("gastos")) { egresosElem.textContent = formatoUSD(v); egresosElem.style.color = "#7a1f1f"; totalEgresos = v; }
-        if (k.includes("utilidad")) { totalUtilidadElem.textContent = formatoUSD(v); totalUtilidadElem.style.color = colorValor(v); totalUtilidad = v; }
+        if (k.includes("ingresos")) {
+            ingresosElem.textContent = formatoUSD(v);
+            ingresosElem.style.color = "#1b5e20";
+            totalIngresos = v;
+        }
+        if (k.includes("egresos") || k.includes("gastos")) {
+            egresosElem.textContent = formatoUSD(v);
+            egresosElem.style.color = "#7a1f1f";
+            totalEgresos = v;
+        }
+        if (k.includes("utilidad")) {
+            totalUtilidadElem.textContent = formatoUSD(v);
+            totalUtilidadElem.style.color = colorValor(v);
+        }
     });
 
-    // Lista de gastos reales alineada a la derecha
+    // ================= GASTOS =================
     renderGastos(totalIngresos, datos, cols);
 }
+
 
 // ================= FUNCION LISTA DE GASTOS CON PORCENTAJES SUAVES =================
 function renderGastos(totalIngresos, datos, cols) {
@@ -623,3 +678,173 @@ ${consolidado.outerHTML}
 
     ventana.document.close();
 }
+
+
+// ================= GRÁFICO FLUJO PRODUCTIVO (INGRESOS, GASTOS, UTILIDAD) =================
+
+let chartFlujo = null;
+
+function mostrarGraficoFlujo() {
+    const empresa = resumenEmpresaSelect.value;
+    const hacienda = resumenHaciendaSelect.value;
+
+    // Filtrar datos según empresa y hacienda seleccionadas
+    const datosFiltrados = datosOriginales.filter(f =>
+        (empresa === "GLOBAL" || f.EMPRESA === empresa) &&
+        (hacienda === "GLOBAL" || f.HACIENDA === hacienda)
+    );
+
+    if (!datosFiltrados.length) {
+        alert("No hay datos para graficar");
+        return;
+    }
+
+    const etiquetas = datosFiltrados.map(f => f.SEM || "");
+    const ingresos = datosFiltrados.map(f => parseFloat((f["TOTAL INGRESOS"] || "0").replace(/[^0-9.-]+/g, "")) || 0);
+    const gastos = datosFiltrados.map(f => parseFloat((f["TOTAL GASTOS"] || f["TOTAL EGRESOS"] || "0").replace(/[^0-9.-]+/g, "")) || 0);
+    const utilidad = datosFiltrados.map(f => parseFloat((f["UTILIDAD PRODUCTIVA"] || "0").replace(/[^0-9.-]+/g, "")) || 0);
+
+    document.getElementById("modalGraficoFlujo").style.display = "flex";
+
+    const canvas = document.getElementById("graficoFlujo");
+    canvas.style.width = "70%";
+    canvas.style.height = "600px"; // altura vertical fija, delgada
+    const ctx = canvas.getContext("2d");
+
+    if (chartFlujo) chartFlujo.destroy();
+
+    chartFlujo = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: etiquetas,
+            datasets: [
+                {
+                    label: "Total Ingresos",
+                    data: ingresos,
+                    borderColor: "#1b5e20",
+                    borderWidth: 2,
+                    fill: true,
+                    backgroundColor: "rgba(173,216,230,0.4)", // azul pastel
+                    tension: 0.35,
+                    pointRadius: 3,       // puntos pequeños
+                    pointHoverRadius: 5,
+                    datalabels: {
+                        display: true,
+                        align: 'top',
+                        color: '#000',
+                        font: {
+                            size: 10
+                        },
+                        formatter: v => "$" + v.toLocaleString("es-EC")
+                    }
+                },
+                {
+                    label: "Total Gastos",
+                    data: gastos,
+                    borderColor: "#7a1f1f",
+                    borderWidth: 2,
+                    fill: true,
+                    backgroundColor: "rgba(255,182,193,0.4)", // rojo pastel
+                    tension: 0.35,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    datalabels: {
+                        display: true,
+                        align: 'top',
+                        color: '#000',
+                        font: {
+                            size: 10
+                        },
+                        formatter: v => "$" + v.toLocaleString("es-EC")
+                    }
+                },
+                {
+                    label: "Utilidad Productiva",
+                    data: utilidad,
+                    borderColor: "#af9500ff",
+                    borderWidth: 2,
+                    fill: true,
+                    backgroundColor: "rgba(230, 216, 173, 0.25)",
+                    tension: 0.35,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    datalabels: {
+                        display: true,
+                        align: 'top',
+                        color: '#000',
+                        font: {
+                            size: 10
+                        },
+                        formatter: v => "$" + v.toLocaleString("es-EC")
+                    }
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: "bottom",
+                    labels: {
+                        boxWidth: 12,
+                        padding: 8
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => "$" + ctx.parsed.y.toLocaleString("es-EC")
+                    }
+                },
+                // plugin para mostrar los valores encima de los puntos
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    font: {
+                        size: 20
+                    },
+                    color: '#333333ff'
+                }
+            },
+            layout: {
+                padding: {
+                    top: 10,
+                    bottom: 30,
+                    left: 10,
+                    right: 10
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: {
+                        callback: v => "$" + v.toLocaleString("es-EC")
+                    },
+                    grid: {
+                        drawTicks: true,
+                        color: ctx => ctx.tick.value === 0 ? '#373737ff' : '#ddd',
+                        lineWidth: ctx => ctx.tick.value === 0 ? 2 : 1
+                    }
+                }
+            }
+        },
+        plugins: [ChartDataLabels] // recuerda incluir el plugin chartjs-plugin-datalabels en tu HTML
+    });
+}
+
+function cerrarGraficoFlujo() {
+    document.getElementById("modalGraficoFlujo").style.display = "none";
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
