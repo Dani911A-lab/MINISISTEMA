@@ -434,7 +434,7 @@ function insertarCarteraMinimalista() {
         line-height:1;
     ">🛈</span>
     <span>
-    Semanas 50-51 en proceso de Liquidacion.</span>
+    Valores tentativos sem 49</span>
 </div>
     `;
 
@@ -528,7 +528,7 @@ function imprimirFlujoDetallado() {
 
     const fecha = new Date().toLocaleDateString("es-EC");
 
-    const ventana = window.open("", "_blank", "width=1200,height=800");
+    const ventana = window.open("", "_blank", "width=1400,height=900");
 
     ventana.document.write(`
 <!DOCTYPE html>
@@ -540,7 +540,7 @@ function imprimirFlujoDetallado() {
 <style>
 @page {
     size: A4 landscape;
-    margin: 10mm;
+    margin: 8mm;
 }
 
 * {
@@ -553,7 +553,7 @@ body {
     font-family: Comfortaa, "Segoe UI", sans-serif;
     background: #fff;
     color: #000;
-    zoom: 0.82;
+    zoom: 0.9;
 }
 
 /* ================= ENCABEZADO ================= */
@@ -561,7 +561,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 22px;
+    margin-bottom: 18px;
 }
 
 .ph-top {
@@ -574,23 +574,18 @@ body {
 }
 
 .ph-title {
-    font-size: 19px;
+    font-size: 20px;
     font-weight: 700;
-    letter-spacing: 0.5px;
-}
-
-/* ================= SEPARADOR ================= */
-.print-separador {
-    height: 14px;
+    letter-spacing: 0.6px;
 }
 
 /* ================= TARJETAS ================= */
 .card {
     box-shadow: none !important;
     border-radius: 8px !important;
-    border: 1px solid #444 !important;
-    margin-bottom: 22px;
-    padding: 10px;
+    border: 1px solid #333 !important;
+    margin-bottom: 18px;
+    padding: 14px;
 }
 
 /* ================= TABLAS ================= */
@@ -603,41 +598,88 @@ th {
     background: #f2f2f2 !important;
     font-size: 11px;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .4px;
     border: 1px solid #444 !important;
-    padding: 5px 6px !important;
+    padding: 6px !important;
 }
 
 td {
     font-size: 11px;
-    padding: 4px 6px !important;
+    padding: 5px !important;
     border: 1px solid #555 !important;
 }
 
-tbody tr:nth-child(even) {
-    background: #fafafa !important;
-}
-
-/* ================= TOTALES ================= */
 tr.total td {
     font-weight: 700 !important;
     border-top: 2px solid #000 !important;
     background: #eaeaea !important;
 }
 
-/* ================= CONSOLIDADO ================= */
+/* ================= CONSOLIDADO DISTRIBUCIÓN ================= */
+.card-saldo {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 3fr 1.5fr !important; /* KPI domina espacio */
+    gap: 28px !important;
+}
+
+/* ================= KPI MUCHO MÁS GRANDES ================= */
+.saldo-principal {
+    padding: 10px 0 !important;
+}
+
 .saldo-principal strong {
-    font-size: 16px !important;
+    font-size: 36px !important;   /* 🔥 más grande */
+    font-weight: 900 !important;
+    display: block !important;
+}
+
+/* Detalle Ingreso / Egreso */
+.saldo-detalle {
+    margin-top: 16px !important;
 }
 
 .saldo-detalle span {
-    font-size: 12px !important;
+    display: block !important;
+    font-size: 22px !important;   /* 🔥 más grande */
+    font-weight: 800 !important;
+    margin-bottom: 8px !important;
 }
 
-.gastos-lista div {
-    page-break-inside: avoid;
+/* ================= LISTA DE GASTOS MÁS ANGOSTA ================= */
+.gastos-lista {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
 }
+
+/* Fila gasto */
+.gastos-lista > div {
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Nombre del gasto */
+.gastos-lista > div > div:first-child {
+    width: 150px !important;  /* ⬅️ más angosto */
+    font-size: 13px !important;
+    font-weight: 600 !important;
+}
+
+/* Barra */
+.gastos-lista div div div {
+    height: 14px !important;
+    border-radius: 4px !important;
+}
+
+/* ================= PORCENTAJES (ÚNICO CAMBIO DE COLOR) ================= */
+.gastos-lista span {
+    font-size: 16px !important;
+    font-weight: 800 !important;
+    color: #000 !important;   /* ✅ ÚNICO color cambiado */
+    margin-left: 8px !important;
+}
+
+
 
 /* ================= LIMPIEZA ================= */
 button,
@@ -659,17 +701,15 @@ canvas {
     <div class="ph-title">${titulo}</div>
 </div>
 
-<div class="print-separador"></div>
-
 ${tablaFlujo.outerHTML}
 
 ${consolidado.outerHTML}
 
 <script>
-    window.onload = () => {
-        window.print();
-        window.onafterprint = () => window.close();
-    };
+window.onload = () => {
+    window.print();
+    window.onafterprint = () => window.close();
+};
 </script>
 
 </body>
@@ -680,7 +720,9 @@ ${consolidado.outerHTML}
 }
 
 
-// ================= GRÁFICO FLUJO PRODUCTIVO (INGRESOS, GASTOS, UTILIDAD) =================
+
+
+// ================= GRÁFICO FLUJO PRODUCTIVO =================
 
 let chartFlujo = null;
 
@@ -688,7 +730,6 @@ function mostrarGraficoFlujo() {
     const empresa = resumenEmpresaSelect.value;
     const hacienda = resumenHaciendaSelect.value;
 
-    // Filtrar datos según empresa y hacienda seleccionadas
     const datosFiltrados = datosOriginales.filter(f =>
         (empresa === "GLOBAL" || f.EMPRESA === empresa) &&
         (hacienda === "GLOBAL" || f.HACIENDA === hacienda)
@@ -700,16 +741,23 @@ function mostrarGraficoFlujo() {
     }
 
     const etiquetas = datosFiltrados.map(f => f.SEM || "");
-    const ingresos = datosFiltrados.map(f => parseFloat((f["TOTAL INGRESOS"] || "0").replace(/[^0-9.-]+/g, "")) || 0);
-    const gastos = datosFiltrados.map(f => parseFloat((f["TOTAL GASTOS"] || f["TOTAL EGRESOS"] || "0").replace(/[^0-9.-]+/g, "")) || 0);
-    const utilidad = datosFiltrados.map(f => parseFloat((f["UTILIDAD PRODUCTIVA"] || "0").replace(/[^0-9.-]+/g, "")) || 0);
 
+    const ingresos = datosFiltrados.map(f =>
+        parseFloat((f["TOTAL INGRESOS"] || "0").replace(/[^0-9.-]/g, "")) || 0
+    );
+
+    const gastos = datosFiltrados.map(f =>
+        parseFloat((f["TOTAL GASTOS"] || f["TOTAL EGRESOS"] || "0").replace(/[^0-9.-]/g, "")) || 0
+    );
+
+    const utilidad = datosFiltrados.map(f =>
+        parseFloat((f["UTILIDAD PRODUCTIVA"] || "0").replace(/[^0-9.-]/g, "")) || 0
+    );
+
+    // Mostrar modal SOLO aquí
     document.getElementById("modalGraficoFlujo").style.display = "flex";
 
-    const canvas = document.getElementById("graficoFlujo");
-    canvas.style.width = "70%";
-    canvas.style.height = "600px"; // altura vertical fija, delgada
-    const ctx = canvas.getContext("2d");
+    const ctx = document.getElementById("graficoFlujo").getContext("2d");
 
     if (chartFlujo) chartFlujo.destroy();
 
@@ -722,61 +770,31 @@ function mostrarGraficoFlujo() {
                     label: "Total Ingresos",
                     data: ingresos,
                     borderColor: "#1b5e20",
-                    borderWidth: 2,
+                    backgroundColor: "rgba(173,216,230,0.4)",
                     fill: true,
-                    backgroundColor: "rgba(173,216,230,0.4)", // azul pastel
+                    borderWidth: 2,
                     tension: 0.35,
-                    pointRadius: 3,       // puntos pequeños
-                    pointHoverRadius: 5,
-                    datalabels: {
-                        display: true,
-                        align: 'top',
-                        color: '#000',
-                        font: {
-                            size: 10
-                        },
-                        formatter: v => "$" + v.toLocaleString("es-EC")
-                    }
+                    pointRadius: 3
                 },
                 {
                     label: "Total Gastos",
                     data: gastos,
                     borderColor: "#7a1f1f",
-                    borderWidth: 2,
+                    backgroundColor: "rgba(255,182,193,0.4)",
                     fill: true,
-                    backgroundColor: "rgba(255,182,193,0.4)", // rojo pastel
+                    borderWidth: 2,
                     tension: 0.35,
-                    pointRadius: 3,
-                    pointHoverRadius: 5,
-                    datalabels: {
-                        display: true,
-                        align: 'top',
-                        color: '#000',
-                        font: {
-                            size: 10
-                        },
-                        formatter: v => "$" + v.toLocaleString("es-EC")
-                    }
+                    pointRadius: 3
                 },
                 {
                     label: "Utilidad Productiva",
                     data: utilidad,
-                    borderColor: "#af9500ff",
-                    borderWidth: 2,
+                    borderColor: "#af9500",
+                    backgroundColor: "rgba(230,216,173,0.35)",
                     fill: true,
-                    backgroundColor: "rgba(230, 216, 173, 0.25)",
+                    borderWidth: 2,
                     tension: 0.35,
-                    pointRadius: 3,
-                    pointHoverRadius: 5,
-                    datalabels: {
-                        display: true,
-                        align: 'top',
-                        color: '#000',
-                        font: {
-                            size: 10
-                        },
-                        formatter: v => "$" + v.toLocaleString("es-EC")
-                    }
+                    pointRadius: 3
                 }
             ]
         },
@@ -785,56 +803,53 @@ function mostrarGraficoFlujo() {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: "bottom",
-                    labels: {
-                        boxWidth: 12,
-                        padding: 8
-                    }
+                    position: "bottom"
                 },
                 tooltip: {
                     callbacks: {
-                        label: ctx => "$" + ctx.parsed.y.toLocaleString("es-EC")
+                        label: ctx =>
+                            "$" + ctx.parsed.y.toLocaleString("es-EC")
                     }
                 },
-                // plugin para mostrar los valores encima de los puntos
+                // 🔢 VALORES SOBRE LAS LÍNEAS
                 datalabels: {
-                    anchor: 'end',
-                    align: 'top',
+                    display: true,
+                    color: "#575757ff",
                     font: {
-                        size: 20
+                        size: 9
                     },
-                    color: '#333333ff'
-                }
-            },
-            layout: {
-                padding: {
-                    top: 10,
-                    bottom: 30,
-                    left: 10,
-                    right: 10
+                    align: "top",
+                    anchor: "end",
+                    formatter: v =>
+                        v === 0 ? "" : "$" + v.toLocaleString("es-EC"),
+                    clamp: true
                 }
             },
             scales: {
                 y: {
-                    beginAtZero: false,
                     ticks: {
                         callback: v => "$" + v.toLocaleString("es-EC")
                     },
+                    // ➖➖➖ LÍNEA NEGRA EN CERO ➖➖➖
                     grid: {
-                        drawTicks: true,
-                        color: ctx => ctx.tick.value === 0 ? '#373737ff' : '#ddd',
-                        lineWidth: ctx => ctx.tick.value === 0 ? 2 : 1
+                        color: ctx =>
+                            ctx.tick.value === 0 ? "#000" : "#ddd",
+                        lineWidth: ctx =>
+                            ctx.tick.value === 0 ? 2 : 1
                     }
                 }
             }
         },
-        plugins: [ChartDataLabels] // recuerda incluir el plugin chartjs-plugin-datalabels en tu HTML
+        plugins: [ChartDataLabels]
     });
 }
 
 function cerrarGraficoFlujo() {
     document.getElementById("modalGraficoFlujo").style.display = "none";
 }
+
+
+
 
 
 
