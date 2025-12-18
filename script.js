@@ -62,6 +62,8 @@ function hideLoader(modulo) {
   }, 350);
 }
 
+
+
 /* ================= URLs ================= */
 
 const sheetURLs = {
@@ -476,6 +478,8 @@ haciendaSelect.addEventListener("change", () => {
   }
 
   dataModules[currentModule] = data;
+
+  
 
   // Cargamos los detalles iniciales sin loader
   const url = detallesURLs[currentModule];
