@@ -9,8 +9,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <body>
 
@@ -53,6 +53,28 @@
         <input type="password" id="password" placeholder="Contraseña">
         <button id="btnLogin">Ingresar</button>
         <p id="loginError"></p>
+      </div>
+
+      <!-- ================= BANNER RECOMENDACIÓN ZOOM ================= -->
+      <div id="bannerZoom" style="
+          display: flex;
+          justify-content: center;
+          margin: 8px auto 16px auto;
+          max-width: 320px;
+      ">
+        <div style="
+            background: #fff4c2;
+            color: #7a5f00;
+            font-size: 14px;
+            text-align: center;
+            padding: 12px 18px;
+            border-radius: 6px;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 100%;
+        ">
+            ⚠ Se recomienda visualizar la página en 90%
+        </div>
       </div>
 
       <!-- ================= CONTENIDO GENERAL ================= -->
@@ -118,127 +140,205 @@
             </div>
           </div>
         </section>
-        
-<!-- ================= RESUMEN ================= -->
-<section id="modulo-resumen" class="modulo-resumen" data-vista="resumen" style="display:none;">
 
-  <!-- ================= SELECTORES INDEPENDIENTES RESUMEN ================= -->
-  <div class="selectores-resumen" style="display:flex; gap:12px; margin-bottom:12px;">
-    <div class="selector-item">
-      <label for="resumenEmpresaSelect">Empresa:</label>
-      <select id="resumenEmpresaSelect"></select>
-    </div>
-    <div class="selector-item">
-      <label for="resumenHaciendaSelect">Hacienda:</label>
-      <select id="resumenHaciendaSelect"></select>
-    </div>
-  </div>
+        <!-- ================= RESUMEN ================= -->
+        <section id="modulo-resumen" class="modulo-resumen" data-vista="resumen" style="display:none;">
 
-  <!-- ================= CONSOLIDADO SUPERIOR ================= -->
-  <div class="resumen-top" style="display:flex; gap:12px; align-items:flex-start;">
+          <!-- ================= SELECTORES INDEPENDIENTES RESUMEN ================= -->
+          <div class="selectores-resumen" style="display:flex; gap:12px; margin-bottom:12px;">
+            <div class="selector-item">
+              <label for="resumenEmpresaSelect">Empresa:</label>
+              <select id="resumenEmpresaSelect"></select>
+            </div>
+            <div class="selector-item">
+              <label for="resumenHaciendaSelect">Hacienda:</label>
+              <select id="resumenHaciendaSelect"></select>
+            </div>
+          </div>
 
-    <!-- ================= CONSOLIDADO KPIs + GASTOS ================= -->
-    <div class="card card-saldo" style="
-      flex:1;
-      display:flex;
-      flex-direction:row;
-      gap:12px;
-      align-items:flex-start;
-    ">
+          <!-- ================= CONSOLIDADO SUPERIOR ================= -->
+          <div class="resumen-top" style="display:flex; gap:12px; align-items:flex-start;">
 
-      <!-- Izquierda: KPIs -->
-      <div class="kpis-wrapper" style="flex:1; display:flex; flex-direction:column;">
-        <h3 style="margin-bottom:6px; font-size:15px;">
-          📈 Consolidado de Flujo Productivo
-        </h3>
+            <!-- ================= CONSOLIDADO KPIs + GASTOS ================= -->
+            <div class="card card-saldo" style="
+              flex:1;
+              display:flex;
+              flex-direction:row;
+              gap:12px;
+              align-items:flex-start;
+            ">
 
-        <div class="saldo-principal" style="margin-bottom:6px;">
-          <span>Total Utilidad</span>
-          <strong>$0.00</strong>
+              <!-- Izquierda: KPIs -->
+              <div class="kpis-wrapper" style="flex:1; display:flex; flex-direction:column;">
+                <h3 style="margin-bottom:6px; font-size:15px;">
+                  📈 Consolidado de Flujo Productivo
+                </h3>
+
+                <div class="saldo-principal" style="margin-bottom:6px;">
+                  <span>Total Utilidad</span>
+                  <strong>$0.00</strong>
+                </div>
+
+                <div class="saldo-detalle" style="display:flex; gap:12px;">
+                  <div>
+                    <small>Ingresos</small>
+                    <span>$0.00</span>
+                  </div>
+                  <div>
+                    <small>Egresos</small>
+                    <span>$0.00</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Derecha: Gastos -->
+              <div class="gastos-lista" style="
+                flex:1;
+                display:flex;
+                flex-direction:column;
+                gap:4px;
+                margin-top:0;
+              ">
+                <!-- JS inserta gastos -->
+              </div>
+
+            </div>
+
+            <!-- ================= CARTERA ================= -->
+            <div class="card card-actividad" style="
+              flex:1;
+              padding:10px;
+            ">
+              <h3 style="
+                margin-bottom:6px;
+                font-size:14px;
+                font-weight:600;
+                color: rgb(46, 46, 46);
+              ">
+                ⎙ Cartera Fruta por Cobrar
+              </h3>
+              <!-- JS insertará aquí .cartera-minimalista -->
+            </div>
+
+          </div>
+
+          <!-- ================= TABLA FLUJO ================= -->
+          <div class="card card-tabla" style="margin-top:18px;">
+
+            <!-- ======= HEADER TABLA ======= -->
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              margin-bottom:8px;
+            ">
+              <h3 style="font-size:14px; margin:0;">
+                ▤ Flujo Detallado
+              </h3>
+
+              <div style="display:flex; gap:6px; margin-right:12px;">
+
+                <!-- BOTÓN GRÁFICO -->
+                <button
+                  onclick="mostrarGraficoFlujo()"
+                  style="
+                    font-size:12px;
+                    padding:4px 10px;
+                    border-radius:4px;
+                    border:1px solid #bbb;
+                    background:#f5f5f5;
+                    color:#000;
+                    cursor:pointer;
+                  "
+                  onmouseover="this.style.background='#e0e0e0'"
+                  onmouseout="this.style.background='#f5f5f5'"
+                >
+                  📊 Ver gráfico
+                </button>
+
+                <!-- BOTÓN IMPRIMIR -->
+                <button
+                  id="btnImprimirFlujo"
+                  onclick="imprimirFlujoDetallado()"
+                  style="
+                    font-size:12px;
+                    padding:4px 10px;
+                    border-radius:4px;
+                    border:1px solid #bbb;
+                    background:#f5f5f5;
+                    color:#000;
+                    cursor:pointer;
+                  "
+                  onmouseover="this.style.background='#e0e0e0'"
+                  onmouseout="this.style.background='#f5f5f5'"
+                >
+                  🖨 Imprimir
+                </button>
+
+              </div>
+            </div>
+
+            <!-- ======= TABLA ======= -->
+            <div class="tabla-scroll">
+              <table class="tabla-flujo">
+                <thead>
+                  <tr id="thead-flujo"></tr>
+                </thead>
+                <tbody id="tbody-flujo"></tbody>
+              </table>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ================= MODAL GRÁFICO FLUJO ================= -->
+        <div id="modalGraficoFlujo" style="
+          display:none;
+          position:fixed;
+          inset:0;
+          background:rgba(0,0,0,.35);
+          z-index:9999;
+          align-items:center;
+          justify-content:center;
+        ">
+          <div style="
+            background:#fff;
+            padding:12px 16px;
+            border-radius:12px;
+            width:75vw;
+            max-width:1200px;
+            max-height:85vh;
+            box-sizing:border-box;
+            display:flex;
+            flex-direction:column;
+            gap:12px;
+          ">
+
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              margin-bottom:8px;
+            ">
+              <strong style="font-size:16px;">
+                Grafica Lineal de Flujo Productivo
+              </strong>
+              <button
+                onclick="cerrarGraficoFlujo()"
+                style="border:none; background:none; cursor:pointer; font-size:16px;"
+              >
+                ✖
+              </button>
+            </div>
+
+            <canvas id="graficoFlujo" style="width:100%; height:360px;"></canvas>
+
+          </div>
         </div>
 
-        <div class="saldo-detalle" style="display:flex; gap:12px;">
-          <div>
-            <small>Ingresos</small>
-            <span>$0.00</span>
-          </div>
-          <div>
-            <small>Egresos</small>
-            <span>$0.00</span>
-          </div>
-        </div>
-      </div>
+      </div> <!-- contenido-principal -->
 
-      <!-- Derecha: Gastos -->
-      <div class="gastos-lista" style="
-        flex:1;
-        display:flex;
-        flex-direction:column;
-        gap:4px;
-        margin-top:0;
-      ">
-        <!-- JS inserta gastos -->
-      </div>
-
-    </div>
-
-    <!-- ================= CARTERA ================= -->
-    <div class="card card-actividad" style="
-      flex:1;
-      padding:10px;
-    ">
-      <h3 style="
-        margin-bottom:6px;
-        font-size:14px;
-        font-weight:600;
-        color: rgb(46, 46, 46);
-      ">
-        ⎙ Cartera Fruta por Cobrar
-      </h3>
-
-      <!-- JS insertará aquí .cartera-minimalista -->
-    </div>
-
-  </div>
-
-  <!-- ================= TABLA FLUJO ================= -->
-  <div class="card card-tabla" style="margin-top:12px;">
-    <div style="
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:6px;
-">
-  <h3 style="font-size:14px; margin:0;">▤ Flujo Detallado</h3>
-
-  <button id="btnImprimirFlujo" style="
-    padding:4px 10px;
-    font-size:12px;
-    border-radius:6px;
-    border:1px solid #ccc;
-    background:#fff;
-    cursor:pointer;
-  ">
-    🖨 Imprimir
-  </button>
-</div>
-
-    <div class="tabla-scroll">
-      <table class="tabla-flujo">
-        <thead>
-          <tr id="thead-flujo"></tr>
-        </thead>
-        <tbody id="tbody-flujo"></tbody>
-      </table>
-    </div>
-  </div>
-
-</section>
-
-
-
-
-      </div>
     </main>
   </div>
 </div>
@@ -254,15 +354,18 @@
   const loginBox = document.getElementById('loginBox');
   const contenido = document.getElementById('contenido');
   const loginError = document.getElementById('loginError');
+  const bannerZoom = document.getElementById('bannerZoom');
 
   // Fondo SOLO para login
   contenedorPrincipal.classList.add("login-fondo");
+  bannerZoom.style.display = "flex"; // mostrar banner al inicio
 
   btnLogin.addEventListener('click', () => {
     if (usuarioInput.value.trim() === "Administrador" && passwordInput.value.trim() === "123") {
       contenedorPrincipal.classList.remove("login-fondo");
       loginBox.style.display = 'none';
       contenido.style.display = 'flex';
+      bannerZoom.style.display = 'none'; // ocultar banner al ingresar
     } else {
       loginError.textContent = "⚠︎ Usuario o contraseña incorrectos";
     }
